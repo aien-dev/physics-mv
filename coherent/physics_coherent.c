@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #define PHYS_COHERENT_MAX_REGIONS 128u
 
@@ -77,7 +78,8 @@ int physics_coherent_region_alloc(PhysicsCoherentContext *ctx,
                                    uint64_t size,
                                    PhysicsCoherentVisibility vis,
                                    PhysicsCoherentRegion *out) {
-    if (!ctx || !out || size == 0) return PHYS_COHERENT_ERR_INVALID;
+    if (!ctx || !out || size == 0 || size > SIZE_MAX - 0xFFFu ||
+        size > UINT64_MAX - 0xFFFu) return PHYS_COHERENT_ERR_INVALID;
     if (vis != PHYS_COHERENT_VIS_CPU_GPU_SNOOP) return PHYS_COHERENT_ERR_INVALID;
 
     /* Find a free slot. */
