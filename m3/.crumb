@@ -14,31 +14,6 @@
     }
   ],
   "extensions": {
-    "generated": {
-      "children": [
-        {
-          "digest": "3923aa5a12c3697a7909a9e9aa4ba02abef0901fefa88eee151427aacf15e279",
-          "last_commit": "766f8fd",
-          "name": "tests",
-          "purpose": "Directory m3/tests. Purpose not yet described by a human."
-        },
-        {
-          "digest": "8d589bbb0aa1578ee7fd18389c28ecdb36858ddb51ebbd5e2baef460579786e5",
-          "last_commit": "766f8fd",
-          "name": "tools",
-          "purpose": "Directory m3/tools. Purpose not yet described by a human."
-        }
-      ],
-      "children_root": "sha256:302548f6859d0cb3baee247dbfeb18f5d3c7e61d30a7290d614b4b27280714a7",
-      "compiled_at": "2026-10-04T13:47:27Z",
-      "compiler": "crumb-compile/1",
-      "digest": "sha256:81dd3d0d4a6edaca0b1aa3976f9d88082c2e643b8a5774d4b37773a59842451b",
-      "evidence_files": 0,
-      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "files": 22,
-      "generated_at_commit": "e0be0e765af3353984b65f8c822a5bb9616272de",
-      "source_tree": "sha256:10451d877af47c074fbd1b0eccd3ee0f50e4d121e60f1173fee63062978dcc20"
-    },
     "owner_lane": "",
     "provenance": {
       "entries": [
