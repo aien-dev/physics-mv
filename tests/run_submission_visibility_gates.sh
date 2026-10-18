@@ -12,6 +12,7 @@ echo "=== GB10 Submission Visibility Gates ==="
 echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "Host: $(uname -n) ($(uname -m))"
 
+mkdir -p build
 echo -e "\n[*] Building submission_visibility_gates..."
 gcc -O2 -Wall -Wextra -Werror \
   -I./nvrm -I./m16 \
@@ -19,7 +20,7 @@ gcc -O2 -Wall -Wextra -Werror \
   -I./third_party/nvidia-open-580.173.02/kernel-open/common/inc \
   -I./third_party/nvidia-open-580.173.02/kernel-open/nvidia-uvm \
   -I./third_party/nvidia-open-580.173.02/src/nvidia/arch/nvalloc/unix/include \
-  nvrm/nvrm.c m16/m16_native.c nvrm/submission_visibility_gates.c -o nvrm/submission_visibility_gates
+  nvrm/nvrm.c m16/m16_native.c nvrm/submission_visibility_gates.c -o build/submission_visibility_gates
 
 echo "    submission_visibility_gates built cleanly."
 
@@ -30,7 +31,7 @@ fi
 
 echo -e "\n[*] Running submission_visibility_gates under GPU lock ($GB10_LOCK)..."
 gb10_lock_acquire
-./nvrm/submission_visibility_gates
+./build/submission_visibility_gates
 gb10_lock_release
 
 echo -e "\n=== GB10 Submission Visibility Gates: done ==="
