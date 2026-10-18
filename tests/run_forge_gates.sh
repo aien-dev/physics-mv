@@ -11,7 +11,8 @@
 #       (created exclusively, mode 0444) plus blobs/<sha256>.log
 #
 # Needs the GB10. The whole build + test section runs under one exclusive
-# lock on /tmp/aien-gb10.lock (fd 9); nothing inside takes the lock again.
+# lock on /tmp/aien-gb10.lock (fd 9), or under the aien-test worker's own hold of
+# it when AIEN_GB10_LOCK_HELD=1; nothing inside takes the lock again.
 #
 # Receipt mode checks: both candidates are explicit full 40-hex SHAs equal to
 # HEAD of a clean tree (this physics tree and --omega-dir), before the run
@@ -289,8 +290,11 @@ forge_main() {
     echo "Host: $(uname -n) ($(uname -m))"
     echo "Run: $run_id"
 
-    exec 9> "$FORGE_LOCK" || { echo "cannot open $FORGE_LOCK" >&2; exit 1; }
-    flock -x 9 || { echo "cannot take $FORGE_LOCK" >&2; exit 1; }
+    # The aien-test worker already holds the lock for a gb10 gate and says so (core #627).
+    if [ "${AIEN_GB10_LOCK_HELD:-}" != 1 ]; then
+        exec 9> "$FORGE_LOCK" || { echo "cannot open $FORGE_LOCK" >&2; exit 1; }
+        flock -x 9 || { echo "cannot take $FORGE_LOCK" >&2; exit 1; }
+    fi
     ts=$(date -u +%Y-%m-%dT%H:%M:%S.%6NZ)
     forge_run_section "$rd" 2>&1 | tee "$log"
     # hash the binaries that ran before another run can rebuild them

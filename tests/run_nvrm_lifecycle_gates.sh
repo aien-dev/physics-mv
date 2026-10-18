@@ -24,6 +24,12 @@ gcc -O2 -Wall -Wextra -Werror \
 echo "    lifecycle_gates built cleanly."
 
 echo -e "\n[*] Running lifecycle_gates under GPU lock ($LOCK_FILE)..."
-flock "$LOCK_FILE" ./nvrm/lifecycle_gates
+# The aien-test worker already holds the lock for a gb10 gate and says so (core #627):
+# taking it again here would wait on the worker forever.
+if [ "${AIEN_GB10_LOCK_HELD:-}" = 1 ]; then
+  ./nvrm/lifecycle_gates
+else
+  flock "$LOCK_FILE" ./nvrm/lifecycle_gates
+fi
 
 echo -e "\n=== M19R NVRM Lifecycle Gates: done ==="

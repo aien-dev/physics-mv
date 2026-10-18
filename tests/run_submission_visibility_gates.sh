@@ -29,6 +29,12 @@ if [ ! -e /dev/nvidia0 ]; then
 fi
 
 echo -e "\n[*] Running submission_visibility_gates under GPU lock ($LOCK_FILE)..."
-flock "$LOCK_FILE" ./nvrm/submission_visibility_gates
+# The aien-test worker already holds the lock for a gb10 gate and says so (core #627):
+# taking it again here would wait on the worker forever.
+if [ "${AIEN_GB10_LOCK_HELD:-}" = 1 ]; then
+  ./nvrm/submission_visibility_gates
+else
+  flock "$LOCK_FILE" ./nvrm/submission_visibility_gates
+fi
 
 echo -e "\n=== GB10 Submission Visibility Gates: done ==="
