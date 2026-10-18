@@ -1,0 +1,20 @@
+# tests/gates/physics-gb10-lock.gate
+# Mirrors hosted: host-gates.yml matrix gb10-lock 'tests/test_gb10_lock.sh' (scratch lock file, no GPU)
+gate: PHYSICS-GB10-LOCK
+manifest_version: 2
+owner: physics
+requires:
+  - host
+inputs:
+  - tests/gb10_lock.sh
+  - tests/test_gb10_lock.sh
+  - tests/gates/
+run:
+  exec: tests/gates/run.sh
+  args: ["gb10-lock"]
+expects:
+  exit: 0
+  verdict: PASS
+timeout: 2m
+exactness: EXACT
+cache_scope: machine

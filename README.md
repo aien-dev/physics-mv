@@ -43,7 +43,7 @@ tests/test_forge_gates_receipt.sh    # Gate 3/4 receipt writer, no GPU (needs jq
 m3/tests/run_m3_gates.sh             # M3 PHYSICS_EFFECTS, 19 gates in QEMU
 ```
 
-`./run_m2_gates.sh` leaves the committed receipt untouched unless `--write-receipt` is passed, which is only for a recorded requalification decision. Gates that need the real GB10 (`tests/run_forge_gates.sh`, `tests/run_m15_gates.sh`, `tests/run_m16_requalification.sh`, `tests/run_nvrm_lifecycle_gates.sh`, `tests/run_submission_visibility_gates.sh`) run on the DGX Spark one at a time and are never killed mid-run.
+`./run_m2_gates.sh` leaves the committed receipt untouched unless `--write-receipt` is passed, which is only for a recorded requalification decision. Gates that need the real GB10 (`tests/run_forge_gates.sh`, `tests/run_m15_gates.sh`, `tests/run_m16_requalification.sh`, `tests/run_nvrm_lifecycle_gates.sh`, `tests/run_submission_visibility_gates.sh`) run on the DGX Spark one at a time and are never killed mid-run. They take the GPU lock (`/tmp/aien-gb10.lock`) through `tests/gb10_lock.sh`, which skips it when a parent process, such as the Spark judge running the gate, already holds it: a gate that locked again would wait on its own parent forever (2026-10-18). `tests/test_gb10_lock.sh` (gate `PHYSICS-GB10-LOCK`, no GPU) checks this.
 
 Since 2026-10-16 the DGX Spark is the only test judge for pull requests (aien-architecture ADR 0033). Its gates are the manifests in `tests/gates/`, and the ones that need the real chip run there. [docs/PIPELINE.md](docs/PIPELINE.md) explains how a pull request is tested and how the `ready-to-merge` label leads to a merge. The verdict of record is the commit status "AIEN Verification (Spark)".
 

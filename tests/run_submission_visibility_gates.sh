@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd -P)
-LOCK_FILE=/tmp/aien-gb10.lock
+. "$SCRIPT_DIR/gb10_lock.sh"
 
 cd "$REPO_ROOT"
 
@@ -28,7 +28,9 @@ if [ ! -e /dev/nvidia0 ]; then
   exit 0
 fi
 
-echo -e "\n[*] Running submission_visibility_gates under GPU lock ($LOCK_FILE)..."
-flock "$LOCK_FILE" ./nvrm/submission_visibility_gates
+echo -e "\n[*] Running submission_visibility_gates under GPU lock ($GB10_LOCK)..."
+gb10_lock_acquire
+./nvrm/submission_visibility_gates
+gb10_lock_release
 
 echo -e "\n=== GB10 Submission Visibility Gates: done ==="

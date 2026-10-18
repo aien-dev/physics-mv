@@ -59,6 +59,7 @@ case "$step" in
   analog-sim)      need_sibling omega; tests/run_forge_analog_sim_gates.sh ;;
   form0)           need_sibling omega; tests/run_forge_form_gates.sh ;;
   gate34-writer)   need_sibling omega; tests/test_forge_gates_receipt.sh "$OMEGA_DIR" ;;
+  gb10-lock)        tests/test_gb10_lock.sh ;;
   m2)              ./run_m2_gates.sh ;;
   m3)
     need_sibling aien-architecture
