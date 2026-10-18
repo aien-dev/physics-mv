@@ -2,6 +2,10 @@
 
 Two things live here: the **FORGE** machine realization layer (C), and the historical **Atlas / PHYSICS boot artifacts** (AArch64 assembly) with their evidence. FORGE turns a verified Omega meaning into a concrete realization on the machine at hand (today CPU and the NVIDIA GB10 GPU; a simulated analog provider exists for testing). It is realization and lowering, not a security gatekeeper: AEGIS verifies, and AIENOS owns the trusted substrate.
 
+Part of [Aienix](https://github.com/aien-dev/aienix), the core tree of AIEN. Start there for how the pieces fit together.
+
+**Status 2026-10-18: research-grade, pre-alpha.** FORGE's realize-and-verify seam and its descriptor contract pass their gates. The boot artifacts are qualified in an emulator (QEMU) only and have not yet booted natively on the DGX Spark. The native memory design for the Spark is a design document, not code.
+
 ```text
 ATLAS AWAKENS. AIEN PROPOSES. OMEGA DEFINES. FORGE REALIZES. AEGIS VERIFIES. HARDWARE ACTS. EVIDENCE TEACHES.
 ```
@@ -12,13 +16,14 @@ Historical `PHYSICS_*` milestone names (for example `PHYSICS_BOOT`) are unchange
 
 Research-grade and pre-alpha.
 
-- **FORGE:** the realize/verify seam (Gates 3 and 4) and the substrate-neutral descriptor contract (V1 and V2) pass their gates. The analog provider is a simulation checked against a digital oracle; no analog hardware is involved. Status and receipts: [CURRENT_EXECUTION_PLAN.md](https://github.com/aien-spark/aien-architecture/blob/main/CURRENT_EXECUTION_PLAN.md) and [doctrine/ROADMAP.md](https://github.com/aien-spark/aien-architecture/blob/main/doctrine/ROADMAP.md) in aien-architecture.
+- **FORGE:** the realize/verify seam (Gates 3 and 4) and the substrate-neutral descriptor contract (V1 and V2) pass their gates. The analog provider is a simulation checked against a digital oracle; no analog hardware is involved. Status and receipts: [CURRENT_EXECUTION_PLAN.md](https://github.com/aien-dev/aien-architecture/blob/main/CURRENT_EXECUTION_PLAN.md) and [doctrine/ROADMAP.md](https://github.com/aien-dev/aien-architecture/blob/main/doctrine/ROADMAP.md) in aien-architecture.
 - **Atlas boot, PHYSICS boot and PHYSICS effects (Milestones 1 to 3):** qualified in QEMU only (AArch64 virt). Native DGX Spark qualification of PHYSICS (`PHYSICS_BOOT_NATIVE_PASS`) has not been done and is never inferred from an emulator pass. The committed `qualification_receipt.json` is historical evidence from a retired Python harness and is kept unchanged ([TRANSITION_PLAN_M2.md](TRANSITION_PLAN_M2.md)).
+- **Native memory design for the Spark:** [docs/native-frame-authority.md](docs/native-frame-authority.md) is a design only (issue physics#2), re-checked against receipts on 2026-10-16. `PHYSICS_BOOT_NATIVE_PASS` is still pending.
 - **Physics Zero** (a clean-room scientific discovery program, distinct from this repository's PHYSICS) is specified here as documents: the overview and benchmark specs are in `docs/` (`PHYSICS0_DISCOVERY_ENGINE.md`, `PD0_HIDDEN_EQUATION_BENCHMARK.md`, `PD0B_SEALED_BENCHMARK.md`, `PD1_MACHINE_LAW_BENCHMARK.md`) and the sealed-benchmark receipts are in `evidence/PD0B/` (the seal-1 verdict there is FAIL). No code here implements it; the learner and harness behind those receipts are in omega. **DIRAC-0** is documents in aien-architecture only.
 
 ## How this fits with the other repositories
 
-[omega](https://github.com/aien-spark/omega) pins this repository by commit (`physics.lock`) and uses `nvrm/` and `m16/` for the native GB10 path. [aienos](https://github.com/aien-spark/aienos) is the kernel. [aien-architecture](https://github.com/aien-spark/aien-architecture) owns status.
+[omega](https://github.com/aien-dev/omega) pins this repository by commit (`physics.lock`) and uses `nvrm/` and `m16/` for the native GB10 path. [aienos](https://github.com/aien-dev/aienos) is the operating system. [aien-architecture](https://github.com/aien-dev/aien-architecture) owns status.
 
 ## Standing rules
 
@@ -38,7 +43,9 @@ tests/test_forge_gates_receipt.sh    # Gate 3/4 receipt writer, no GPU (needs jq
 m3/tests/run_m3_gates.sh             # M3 PHYSICS_EFFECTS, 19 gates in QEMU
 ```
 
-`./run_m2_gates.sh` leaves the committed receipt untouched unless `--write-receipt` is passed, which is only for a recorded requalification decision. Gates that need the real GB10 (`tests/run_forge_gates.sh`, `tests/run_m15_gates.sh`, `tests/run_m16_requalification.sh`, `tests/run_nvrm_lifecycle_gates.sh`, `tests/run_submission_visibility_gates.sh`) run on the DGX Spark one at a time and are never killed mid-run; CI declares them SKIP, never PASS.
+`./run_m2_gates.sh` leaves the committed receipt untouched unless `--write-receipt` is passed, which is only for a recorded requalification decision. Gates that need the real GB10 (`tests/run_forge_gates.sh`, `tests/run_m15_gates.sh`, `tests/run_m16_requalification.sh`, `tests/run_nvrm_lifecycle_gates.sh`, `tests/run_submission_visibility_gates.sh`) run on the DGX Spark one at a time and are never killed mid-run.
+
+Since 2026-10-16 the DGX Spark is the only test judge for pull requests (aien-architecture ADR 0033). Its gates are the manifests in `tests/gates/`, and the ones that need the real chip run there. [docs/PIPELINE.md](docs/PIPELINE.md) explains how a pull request is tested and how the `ready-to-merge` label leads to a merge. The verdict of record is the commit status "AIEN Verification (Spark)".
 
 ## Evidence notes
 
@@ -47,10 +54,10 @@ m3/tests/run_m3_gates.sh             # M3 PHYSICS_EFFECTS, 19 gates in QEMU
 
 ## Contributing
 
-Open a pull request with the command you ran and its output. Do not edit committed receipts or binaries without the matching rebuilt evidence. Contact: aien@aienos.com.
+Open a pull request with the command you ran and its output. Do not edit committed receipts or binaries without the matching rebuilt evidence. A pull request merges only after the Spark judge passes it and a maintainer adds the `ready-to-merge` label. Contact: aien@aienos.com.
 
 ## Crumbs
 
 This repo uses the Crumb Protocol (RFC-0001). Each directory carries a `.crumb` file (what the directory is for, its rules, and a backfilled history). Live coordination between agents goes in `.crumb.local`, which is never committed.
-Before editing a directory, read its `.crumb`. Rules and the `crumb` tool: https://github.com/aien-spark/aien-architecture/blob/main/docs/CRUMB_PROTOCOL.md
+Before editing a directory, read its `.crumb`. Rules and the `crumb` tool: https://github.com/aien-dev/aien-architecture/blob/main/docs/CRUMB_PROTOCOL.md
 Backfilled history (marked as such, not live whispers) is in `docs/crumbs/BACKFILL.md`.
