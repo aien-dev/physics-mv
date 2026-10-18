@@ -59,6 +59,7 @@ case "$step" in
   analog-sim)      need_sibling omega; tests/run_forge_analog_sim_gates.sh ;;
   form0)           need_sibling omega; tests/run_forge_form_gates.sh ;;
   gate34-writer)   need_sibling omega; tests/test_forge_gates_receipt.sh "$OMEGA_DIR" ;;
+  gb10-lock)        tests/test_gb10_lock.sh ;;
   m2)              ./run_m2_gates.sh ;;
   m3)
     need_sibling aien-architecture
@@ -72,8 +73,10 @@ case "$step" in
   forge-gate34)    tests/run_forge_gates.sh ;;
   m15)             run_in_temp_copy tests/run_m15_gates.sh ;;
   m16-requal)      run_in_temp_copy tests/run_m16_requalification.sh ;;
-  nvrm-lifecycle)  tests/run_nvrm_lifecycle_gates.sh ;;
-  submission-visibility) tests/run_submission_visibility_gates.sh ;;
+  # The two nvrm scripts compile into nvrm/ (lifecycle_gates is a tracked
+  # binary); in the shared worktree that is a concurrent gate's dirty_after.
+  nvrm-lifecycle)  run_in_temp_copy tests/run_nvrm_lifecycle_gates.sh ;;
+  submission-visibility) run_in_temp_copy tests/run_submission_visibility_gates.sh ;;
   zero-disk-secrets)
     # Not a hosted step in this repository; the same invariant the Rust repos enforce.
     echo "Auditing repository for prohibited plaintext secret files..."

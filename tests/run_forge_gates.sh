@@ -11,7 +11,8 @@
 #       (created exclusively, mode 0444) plus blobs/<sha256>.log
 #
 # Needs the GB10. The whole build + test section runs under one exclusive
-# lock on /tmp/aien-gb10.lock (fd 9); nothing inside takes the lock again.
+# lock on /tmp/aien-gb10.lock (fd 9; tests/gb10_lock.sh skips it when a parent such as
+# the judge already holds it); nothing inside takes the lock again.
 #
 # Receipt mode checks: both candidates are explicit full 40-hex SHAs equal to
 # HEAD of a clean tree (this physics tree and --omega-dir), before the run
@@ -38,6 +39,7 @@
 
 FORGE_ROOT=$(cd -P "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 FORGE_LOCK=/tmp/aien-gb10.lock
+. "$FORGE_ROOT/tests/gb10_lock.sh"
 FORGE_ERR=
 FORGE_SCHEMA=AIEN_M19R_FORGE_GATES_V1
 FORGE_GATE=M19R_GATES_3_4_FORGE
@@ -289,14 +291,14 @@ forge_main() {
     echo "Host: $(uname -n) ($(uname -m))"
     echo "Run: $run_id"
 
-    exec 9> "$FORGE_LOCK" || { echo "cannot open $FORGE_LOCK" >&2; exit 1; }
-    flock -x 9 || { echo "cannot take $FORGE_LOCK" >&2; exit 1; }
+    # fd 9, or nothing when a parent (the judge's gb10 job) already holds it: tests/gb10_lock.sh
+    GB10_LOCK=$FORGE_LOCK gb10_lock_acquire || exit 1
     ts=$(date -u +%Y-%m-%dT%H:%M:%S.%6NZ)
     forge_run_section "$rd" 2>&1 | tee "$log"
     # hash the binaries that ran before another run can rebuild them
     g3sha=$( [ -f tests/test_forge_seam ] && forge_sha_file tests/test_forge_seam)
     g4sha=$( [ -f tests/test_forge_hwid ] && forge_sha_file tests/test_forge_hwid)
-    exec 9>&-
+    gb10_lock_release
     g3=$(cat "$rd/gate3.rc"); g4=$(cat "$rd/gate4.rc")
     echo -e "\n=== M19R FORGE Gates Complete (gate3 exit $g3, gate4 exit $g4) ==="
     rc=0
