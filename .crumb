@@ -34,67 +34,7 @@
     }
   ],
   "extensions": {
-    "generated": {
-      "children": [
-        {
-          "digest": "7f1255ac5d9ecb72d0171ad2fb7d58d02cdddc7d292ac99fdd5e01996a7ea78d",
-          "last_commit": "ff13208",
-          "name": "contracts",
-          "purpose": "Directory contracts. Purpose not yet described by a human."
-        },
-        {
-          "digest": "08c4408f3c1526f4cf9c4416cd25934717f99a0e5da795b6a5d9b641abd46965",
-          "last_commit": "118a508",
-          "name": "docs",
-          "purpose": "Directory docs. Purpose not yet described by a human."
-        },
-        {
-          "digest": "957aafdcf49b5e013235254017b4c2984ca8e3b0bb2f7877eabff493e765c246",
-          "last_commit": "ff2c62e",
-          "name": "forge",
-          "purpose": "Directory forge. Purpose not yet described by a human."
-        },
-        {
-          "digest": "082c08b40f0b9c64dca91cfa5bd9c4e79fe2f5ec3e61ff6d765147ad8adb0458",
-          "last_commit": "b5444bb",
-          "name": "m15",
-          "purpose": "Directory m15. Purpose not yet described by a human."
-        },
-        {
-          "digest": "81dd3d0d4a6edaca0b1aa3976f9d88082c2e643b8a5774d4b37773a59842451b",
-          "last_commit": "a7dc4ef",
-          "name": "m3",
-          "purpose": "Directory m3. Purpose not yet described by a human."
-        },
-        {
-          "digest": "9b65ea2751e79aba09b3bfef56a5f9c87f36d8cf63e88cd97d7d97f170e97d12",
-          "last_commit": "aecb9d3",
-          "name": "tests",
-          "purpose": "Directory tests. Purpose not yet described by a human."
-        },
-        {
-          "digest": "e3cacdb9c1f09ba66d6dc8a74a51b591589094c2ba507166dd453dff84755531",
-          "last_commit": "b64753d",
-          "name": "third_party",
-          "purpose": "Directory third_party. Purpose not yet described by a human."
-        },
-        {
-          "digest": "9a5b9439ba72383093d7d5b3ffa32bc0e553ad5ec2892fc8d696eb9d4ca47796",
-          "last_commit": "8ee14a3",
-          "name": "tools",
-          "purpose": "Directory tools. Purpose not yet described by a human."
-        }
-      ],
-      "children_root": "sha256:dce423da167bf6a00c3fd5efd12314c50f397844cb35bc62e142777344365b19",
-      "compiled_at": "2026-10-18T23:47:11Z",
-      "compiler": "crumb-compile/1",
-      "digest": "sha256:35cac2f61c3c79f0821310ec28eec853156281f4f3b88b851c633fd8ccd2b99e",
-      "evidence_files": 81,
-      "evidence_root": "sha256:0a0459a4517679721bb2817540dd06995500a1c1ede079bc4665d9da5c39183d",
-      "files": 285,
-      "generated_at_commit": "aecb9d35dc362d4afe82925dd2681f499a0e14e2",
-      "source_tree": "sha256:f777b607e430c531f7898fe3955e57ead4ba7873dbb40c28b7773d80cbb069bc"
-    },
+    "generated_policy": "on-demand",
     "owner_lane": "",
     "provenance": {
       "entries": [
