@@ -42,7 +42,7 @@ Research-grade and pre-alpha.
 
 - [omega](https://github.com/aien-dev/omega-mv) pins this repository by commit (`physics.lock`) and uses `nvrm/` and `m16/` for the native GB10 path.
 - [aienos](https://github.com/aien-dev/aienos-mv) is the operating system.
-- [aien-architecture](https://github.com/aien-dev/aien-architecture-mv) owns status, the ADRs and the crumb tool.
+- [aien-architecture](https://github.com/aien-dev/aien-architecture-mv) owns status and the ADRs.
 - [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core-mv) holds the test runner (`aien-test`) used by the Spark judge.
 - [aien-receipts](https://github.com/aien-dev/aien-receipts) stores the signed test results the judge publishes.
 
@@ -54,7 +54,7 @@ Per ADR 0024 (aien-architecture, accepted 2026-10-01): Rust is scaffolding, Omeg
 
 Needs host `gcc` and `make`, the AArch64 binutils and compiler (`aarch64-linux-gnu-gcc`, `-ld` and `-objcopy` by default; override with `CC`, `LD`, `OBJCOPY`, or `CROSS` for the M3 build), QEMU for AArch64 (`qemu-system-aarch64`), `socat` (the QEMU inspector uses QMP) and `jq`.
 
-`tests/gates/run.sh <step>` is the one entry point. It runs the same script as the gate manifest of that name. Some steps need sibling checkouts next to this one: `../omega` for `analog-sim`, `form0` and `gate34-writer`, and `../aien-architecture` for `m3` and `crumb-verify`. They exit 3 with a message if the sibling is missing.
+`tests/gates/run.sh <step>` is the one entry point. It runs the same script as the gate manifest of that name. Some steps need sibling checkouts next to this one: `../omega` for `analog-sim`, `form0` and `gate34-writer`, and `../aien-architecture` for `m3`. They exit 3 with a message if the sibling is missing.
 
 ```bash
 git clone https://github.com/aien-dev/physics-mv physics
@@ -94,9 +94,7 @@ Open a pull request with the command you ran and its output. Do not edit committ
 
 ## Crumbs
 
-This repo uses the Crumb Protocol (RFC-0001). Each directory carries a `.crumb` file (what the directory is for, its rules, and a backfilled history). Live coordination between agents goes in `.crumb.local`, which is never committed.
-Before editing a directory, read its `.crumb`. Rules and the `crumb` tool: https://github.com/aien-dev/aien-architecture-mv/blob/main/docs/CRUMB_PROTOCOL.md
-Backfilled history (marked as such, not live whispers) is in [docs/crumbs/BACKFILL.md](docs/crumbs/BACKFILL.md).
+A `.crumb` file is a short note a person wrote about a directory: what it is for and any rules for working in it. Read it before you edit that directory. Crumbs are advisory. They are never a merge check, and nothing in them is generated, so there is no compile or verify step. Live coordination between agents goes in `.crumb.local`, which is never committed. Background: RFC-0003 Amendment 2 in aien-architecture.
 
 ## License
 
