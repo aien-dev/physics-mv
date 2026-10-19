@@ -41,6 +41,8 @@ run_in_temp_copy() {
 }
 
 case "$step" in
+  # Retired: crumbs are advisory (RFC-0003 Am2). Kept so the CRUMB-VERIFY manifest still resolves.
+  crumb-verify)        echo "CRUMB-VERIFY retired: crumbs are advisory notes (RFC-0003 Am2); nothing to check" ;;
   forge-v2)        tests/run_forge_v2_gates.sh ;;
   forge-aegis)     tests/run_forge_aegis_host_gates.sh ;;
   analog-sim)      need_sibling omega; tests/run_forge_analog_sim_gates.sh ;;
