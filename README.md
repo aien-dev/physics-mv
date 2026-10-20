@@ -1,8 +1,8 @@
 # PHYSICS
 
-Two things live here: the **FORGE** machine realization layer (C), and the historical **Atlas / PHYSICS boot artifacts** (AArch64 assembly) with their evidence. FORGE turns a verified Omega meaning into a concrete realization on the machine at hand (today the CPU and the NVIDIA GB10 GPU; a simulated analog provider exists for testing). It is realization and lowering, not a security gatekeeper: AEGIS verifies, and AIENOS owns the trusted substrate. This repository also holds `nvrm/`, the small C client that drives the GB10 directly through the open NVIDIA kernel interface (no CUDA).
+Two things live here: the **FORGE** machine realization layer (C), and the historical **Atlas / PHYSICS boot artifacts** (AArch64 assembly) with their evidence. FORGE turns a verified Omega meaning into a concrete realization on the machine at hand (today the CPU and the NVIDIA GB10 GPU; a simulated analog provider exists for testing). It is realization and lowering, not a security gatekeeper: AEGIS verifies, and Aienux owns the trusted substrate. This repository also holds `nvrm/`, the small C client that drives the GB10 directly through the open NVIDIA kernel interface (no CUDA).
 
-Part of [Aienix](https://github.com/aien-dev/aienix), the core tree of AIEN. Start there for how the pieces fit together.
+Part of [AienOS](https://github.com/aien-dev/aienix), the core tree of AIEN. Start there for how the pieces fit together.
 
 **Status 2026-10-19: research-grade, pre-alpha.** FORGE's realize-and-verify seam and its descriptor contract pass their gates. The boot artifacts are qualified in an emulator (QEMU) only and have not booted natively on the DGX Spark. The native memory design for the Spark is a design document, not code.
 

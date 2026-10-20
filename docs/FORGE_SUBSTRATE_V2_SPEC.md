@@ -107,7 +107,7 @@ Values are listed in canonical (tag) order. Type `d32` is a 32-byte digest.
 | Tag | Type | Field | Rule |
 |---|---|---|---|
 | 0x0101 | d32 | machine_identity | non-zero; stable identity of the Machine (e.g. owner-enrolled key digest) |
-| 0x0102 | d32 | authority_domain | non-zero; the AIENOS authority domain that governs it |
+| 0x0102 | d32 | authority_domain | non-zero; the Aienux authority domain that governs it |
 | 0x0110 | u64 | memory_nominal_bytes | declared nominal capacity, **not** measured MemTotal |
 | 0x0111 | u32 | memory_numa_domains | |
 | 0x0112 | u32 | memory_coherency | UNIFIED 1, NONCOHERENT 2, DISCRETE 3 |

@@ -35,7 +35,7 @@ Every fact is labelled. Classes:
 
 | Label | Meaning |
 | --- | --- |
-| `measured_native_uefi` | Observed by native AIENOS code on Machine 1 (DGX Spark) after firmware, read back from the firmware-variable report. Source: aienos `evidence/m2_first_boot_2026-09-24.md`. |
+| `measured_native_uefi` | Observed by native Aienux code on Machine 1 (DGX Spark) after firmware, read back from the firmware-variable report. Source: aienos `evidence/m2_first_boot_2026-09-24.md`. |
 | `measured_linux` | Observed read-only under Linux 7.0.0-1019-nvidia on Machine 1 (`/proc/iomem`, `dmesg`, `/proc/meminfo`, aienos `evidence/gb10_linux_readonly_2026-09-25.md`), collected 2026-09-26. Linux's view, **not** a native proof. |
 | `assumed` | Not measured by this project. Public-spec knowledge or engineering assumption. Must be confirmed before native qualification. |
 | `derived` | Arithmetic over the above. |
@@ -637,12 +637,12 @@ Read-only, without root, under Linux 7.0.0-1019-nvidia:
   a new native image, never as a patch to M2. Section 7 already requires this.
 - **No native frame-authority code exists in this repository.** On
   2026-10-16, `PHYSMEM1` appears only in this document and the draft contract.
-- **AIENOS has its own native allocators (cross-repo discrepancy).** On
+- **Aienux has its own native allocators (cross-repo discrepancy).** On
   aienos-mv `main` (`4bd49ca`), `native/kernel/mm/frames.h` (added in
   `89cccf4`, 2026-10-01) is a list of at most 128 free ranges built from
   `EfiConventionalMemory`, with a counter of "ranges lost because the table
   was full". `crates/aienos-kernel/src/mem/frame_allocator.rs` is a
-  fixed-size bitmap allocator. These serve the AIENOS kernel, not PHYSICS. The
+  fixed-size bitmap allocator. These serve the Aienux kernel, not PHYSICS. The
   lost-ranges counter is a silent truncation, which section 2.2 forbids for
   PHYSICS (refuse, never truncate). Recorded here only; this revision changes
   nothing in aienos.
