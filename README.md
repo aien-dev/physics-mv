@@ -46,6 +46,8 @@ Research-grade and pre-alpha.
 - [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core-mv) holds the test runner (`aien-test`) used by the Spark judge.
 - [aien-receipts](https://github.com/aien-dev/aien-receipts) stores the signed test results the judge publishes.
 
+`nvrm_channel_n` (2026-10-20, omega L136) opens up to three extra command queues (GPFIFO channels) in the same channel group and address space as the first; `nvrm_channel` is `nvrm_channel_n(rm, 0)`, unchanged. Measured on the GB10: two queues side by side give no speed gain for 27B decode (omega `docs/numeric/GPU_CHANNELS.md`).
+
 ## Standing rules
 
 Per ADR 0024 (aien-architecture, accepted 2026-10-01): Rust is scaffolding, Omega is the destination, and C is used only where hardware justifies it, with assembly only where measured. In this repository that is the C of FORGE and `nvrm/`, and the AArch64 boot artifacts. No Python (the old Python harness was removed; tools are C or shell). No CUDA toolkit or CUDA library dependence: the GB10 is driven natively through its open kernel interface. No systemd. Offline builds. Never overwrite old receipts.
