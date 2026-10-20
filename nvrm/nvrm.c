@@ -805,9 +805,13 @@ failed:
 }
 
 /* GP entry per clc96f.h: ENTRY0 GET 31:2 (VA low, dword aligned), ENTRY1 GET_HI 7:0,
- * LEVEL 9:9 = MAIN, LENGTH 30:10 in dwords, SYNC 31:31 = PROCEED. */
+ * LEVEL 9:9 = MAIN, LENGTH 30:10 in dwords, SYNC 31:31 = PROCEED. The address field is
+ * 40 bits (ENTRY0 31:2 plus GET_HI 7:0); bits above it would land in LEVEL/LENGTH, so
+ * they are masked off here and nvrm_enqueue() refuses such a VA before it gets this far. */
+#define NVRM_GP_VA_LIMIT (1ull << 40)
+
 uint64_t nvrm_gp_entry(uint64_t va, uint32_t nwords) {
-    return (va & ~3ull) | ((uint64_t)(nwords & 0x1fffff) << 42) | (1ull << 41);
+    return (va & (NVRM_GP_VA_LIMIT - 1) & ~3ull) | ((uint64_t)(nwords & 0x1fffff) << 42) | (1ull << 41);
 }
 
 volatile uint32_t *nvrm_userd_gpput(Nvrm *rm) {
@@ -820,6 +824,8 @@ int nvrm_enqueue(Nvrm *rm, const NvrmMem *pb, uint32_t off, uint32_t nwords) {
     if ((off & 3u) || nwords == 0 || nwords > 0x1fffff || (uint64_t)off + (uint64_t)nwords * 4u > pb->size)
         return fail(rm, "bad pushbuffer span");
     if (pb->va > UINT64_MAX - off) return fail(rm, "pushbuffer VA overflow");
+    if (pb->va + off > NVRM_GP_VA_LIMIT || (uint64_t)nwords * 4u > NVRM_GP_VA_LIMIT - (pb->va + off))
+        return fail(rm, "pushbuffer VA beyond 40-bit GPFIFO field");
     /* Blackwell USERD documents no GPGet (clc96f.h), so consumption is tracked by the
      * caller via nvrm_retire() after it observes completion. Never overrun unretired entries. */
     if (rm->put - rm->retired >= rm->entries - 1) return fail(rm, "GPFIFO full: %u entries unretired", rm->put - rm->retired);
