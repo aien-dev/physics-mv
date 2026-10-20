@@ -805,9 +805,13 @@ failed:
 }
 
 /* GP entry per clc96f.h: ENTRY0 GET 31:2 (VA low, dword aligned), ENTRY1 GET_HI 7:0,
- * LEVEL 9:9 = MAIN, LENGTH 30:10 in dwords, SYNC 31:31 = PROCEED. The address field is
- * 40 bits (ENTRY0 31:2 plus GET_HI 7:0); bits above it would land in LEVEL/LENGTH, so
- * they are masked off here and nvrm_enqueue() refuses such a VA before it gets this far. */
+ * LEVEL 9:9, LENGTH 30:10 in dwords, SYNC 31:31 = PROCEED. The code below ORs (1ull << 41),
+ * which is ENTRY1 bit 9 = LEVEL, so it sets LEVEL = SUBROUTINE (1), not MAIN (0)
+ * (clc96f.h NVC96F_GP_ENTRY1_LEVEL_MAIN 0x0, _SUBROUTINE 0x1). This encoding is chip-proven
+ * and must not change; whether MAIN was intended is UNKNOWN and needs a chip run to decide.
+ * The address field is 40 bits (ENTRY0 31:2 plus GET_HI 7:0); bits above it would land in
+ * LEVEL/LENGTH, so they are masked off here and nvrm_enqueue() refuses such a VA before it
+ * gets this far. */
 #define NVRM_GP_VA_LIMIT (1ull << 40)
 
 uint64_t nvrm_gp_entry(uint64_t va, uint32_t nwords) {
