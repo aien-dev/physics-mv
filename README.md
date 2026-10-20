@@ -20,6 +20,8 @@ Research-grade and pre-alpha.
 
 [omega](https://github.com/aien-dev/omega) pins this repository by commit (`physics.lock`) and uses `nvrm/` and `m16/` for the native GB10 path. [aienos](https://github.com/aien-dev/aienos) is the kernel. [aien-architecture](https://github.com/aien-dev/aien-architecture) owns status.
 
+`nvrm_channel_n` (2026-10-20, omega L136) opens up to three extra command queues (GPFIFO channels) in the same channel group and address space as the first; `nvrm_channel` is `nvrm_channel_n(rm, 0)`, unchanged. Measured on the GB10: two queues side by side give no speed gain for 27B decode (omega `docs/numeric/GPU_CHANNELS.md`).
+
 ## Standing rules
 
 C is the target language, with assembly only where measured. No Python (the old Python harness was removed; tools are C or shell). No CUDA toolkit or CUDA library dependence: the GB10 is driven natively through its open kernel interface. No systemd. Offline builds. Never overwrite old receipts.
