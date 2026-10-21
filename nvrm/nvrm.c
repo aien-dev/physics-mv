@@ -158,7 +158,7 @@ static int open_dev_fd(Nvrm *rm) {
 }
 
 /* Map an RM memory object into this process at a fixed CPU address. */
-static void *map_to_cpu(Nvrm *rm, uint32_t hmem, uint64_t size, void *target, uint32_t flags, int system) {
+static void *map_to_cpu(Nvrm *rm, uint32_t hmem, uint64_t size, void *target, uint32_t flags, int system, int prot) {
     int fd = system ? open("/dev/nvidiactl", O_RDWR | O_CLOEXEC) : open_dev_fd(rm);
     if (fd < 0) { fail(rm, "map fd"); return MAP_FAILED; }
     nv_ioctl_nvos33_parameters_with_fd m;
@@ -174,7 +174,7 @@ static void *map_to_cpu(Nvrm *rm, uint32_t hmem, uint64_t size, void *target, ui
         close(fd);
         return MAP_FAILED;
     }
-    void *p = mmap(target, size, PROT_READ | PROT_WRITE, MAP_SHARED | (target ? MAP_FIXED : 0), fd, 0);
+    void *p = mmap(target, size, prot, MAP_SHARED | (target ? MAP_FIXED : 0), fd, 0);
     close(fd);
     if (p == MAP_FAILED) fail(rm, "mmap errno %d", errno);
     return p;
@@ -279,7 +279,7 @@ int nvrm_open(Nvrm *rm) {
                     rm->compute_class, rm->gpfifo_class, rm->usermode_class);
 
     if (rm_alloc(rm, rm->subdevice, rm->usermode_class, NULL, 0, &rm->usermode)) return -1;
-    void *mmio = map_to_cpu(rm, rm->usermode, 0x10000, NULL, 0, 0);
+    void *mmio = map_to_cpu(rm, rm->usermode, 0x10000, NULL, 0, 0, PROT_READ | PROT_WRITE);
     if (mmio == MAP_FAILED) return -1;
     rm->usermode_cpu = mmio;
     rm->doorbell = (volatile uint32_t *)((uint8_t *)mmio + NVC361_NOTIFY_CHANNEL_PENDING);
@@ -415,7 +415,7 @@ static uint64_t va_take(Nvrm *rm, uint64_t size, uint64_t align) {
 }
 
 static int uvm_map(Nvrm *rm, uint64_t va, uint64_t size, uint32_t hmem,
-                   uint8_t *uvm_created, uint8_t *dma_mapped) {
+                   uint8_t *uvm_created, uint8_t *dma_mapped, int read_only) {
     UVM_CREATE_EXTERNAL_RANGE_PARAMS cr;
     memset(&cr, 0, sizeof cr);
     cr.base = va;
@@ -430,7 +430,8 @@ static int uvm_map(Nvrm *rm, uint64_t va, uint64_t size, uint32_t hmem,
     d.hDma = rm->virtmem;
     d.hMemory = hmem;
     d.length = size;
-    d.flags = (NVOS46_FLAGS_PAGE_SIZE_4KB << 8) | (NVOS46_FLAGS_CACHE_SNOOP_ENABLE << 4) | (NVOS46_FLAGS_DMA_OFFSET_FIXED_TRUE << 15);
+    d.flags = (NVOS46_FLAGS_PAGE_SIZE_4KB << 8) | (NVOS46_FLAGS_CACHE_SNOOP_ENABLE << 4) | (NVOS46_FLAGS_DMA_OFFSET_FIXED_TRUE << 15) |
+              (read_only ? NVOS46_FLAGS_ACCESS_READ_ONLY : 0);
     d.dmaOffset = va;
     if (nv_ioctl(rm->fd_ctl, NV_ESC_RM_MAP_MEMORY_DMA, &d, sizeof d) != 0 || d.status != 0)
         return fail(rm, "RM_MAP_MEMORY_DMA errno %d status 0x%x", errno, d.status);
@@ -446,7 +447,7 @@ static int uvm_map(Nvrm *rm, uint64_t va, uint64_t size, uint32_t hmem,
     ma.hMemory = hmem;
     ma.gpuAttributesCount = 1;
     memcpy(ma.perGpuAttributes[0].gpuUuid.uuid, rm->gpu_uuid, 16);
-    ma.perGpuAttributes[0].gpuMappingType = UvmGpuMappingTypeReadWriteAtomic;
+    ma.perGpuAttributes[0].gpuMappingType = read_only ? UvmGpuMappingTypeReadOnly : UvmGpuMappingTypeReadWriteAtomic;
     return uvm(rm, rm->fd_uvm, UVM_MAP_EXTERNAL_ALLOCATION, &ma, &ma.rmStatus);
 }
 
@@ -508,7 +509,7 @@ static int alloc_with_cacheability(Nvrm *rm, uint64_t size, NvrmMem *out, uint32
         rm->faulted = 1; /* unknown driver state: do not recycle this VA */
         return -1;
     }
-    void *cpu = map_to_cpu(rm, h, size, (void *)va, 0, 1);
+    void *cpu = map_to_cpu(rm, h, size, (void *)va, 0, 1, PROT_READ | PROT_WRITE);
     if (cpu != (void *)va) {
         char why[sizeof rm->err];
         memcpy(why, rm->err, sizeof why);
@@ -516,7 +517,7 @@ static int alloc_with_cacheability(Nvrm *rm, uint64_t size, NvrmMem *out, uint32
         return fail(rm, "cpu map at 0x%lx failed: %s", (unsigned long)va, why);
     }
     uint8_t uvm_created = 0, dma_mapped = 0;
-    if (uvm_map(rm, va, size, h, &uvm_created, &dma_mapped)) {
+    if (uvm_map(rm, va, size, h, &uvm_created, &dma_mapped, 0)) {
         quarantine_allocation(rm, h, va, size, cpu, uvm_created, dma_mapped);
         return -1;
     }
@@ -610,6 +611,108 @@ int nvrm_free(Nvrm *rm, NvrmMem *m) {
     memset(m, 0, sizeof *m);
     return 0;
 }
+
+/* Cross-process sharing (L383, 2026-10-21: one 35B weights upload for the live server and every test
+ * copy). nvrm_export() names a live allocation for another process: the owner's RM client handle and
+ * memory handle. The driver lets another client duplicate that object when the caller has the owner's
+ * euid or pid (nvidia-open-580.173.02 os.c osValidateClientTokens). nvrm_import() duplicates it into
+ * this process's client (NV_ESC_RM_DUP_OBJECT, NVOS55) and maps the SAME pages at a VA of its own, CPU
+ * and GPU, keeping the owner's cache attributes. read_only maps them PROT_READ, NVOS33/NVOS46
+ * ACCESS_READ_ONLY and UvmGpuMappingTypeReadOnly: a CPU or chip write faults instead of changing the
+ * owner's data. The duplicate holds its own reference: the pages stay valid after the owner frees or
+ * exits, until nvrm_free() of the imported NvrmMem. Nothing is zeroed or written on import. */
+/* Let another client of the same user duplicate hobj (NV_ESC_RM_SHARE, NVOS57): share type
+ * OS_SECURITY_TOKEN (the driver compares euid, or pid) with the DUP_OBJECT right. Without this the
+ * default policy refuses the dup with NV_ERR_INSUFFICIENT_PERMISSIONS (0x1b, observed 2026-10-21). */
+static int rm_share_same_user(Nvrm *rm, uint32_t hobj) {
+    NVOS57_PARAMETERS p;
+    memset(&p, 0, sizeof p);
+    p.hClient = rm->root;
+    p.hObject = hobj;
+    p.sharePolicy.type = RS_SHARE_TYPE_OS_SECURITY_TOKEN;
+    p.sharePolicy.action = 0;
+    p.sharePolicy.target = 0;
+    RS_ACCESS_MASK_ADD(&p.sharePolicy.accessMask, RS_ACCESS_DUP_OBJECT);
+    if (nv_ioctl(rm->fd_ctl, NV_ESC_RM_SHARE, &p, sizeof p) != 0)
+        return fail(rm, "RM_SHARE handle 0x%x ioctl errno %d", hobj, errno);
+    if (p.status != NV_OK) return fail(rm, "RM_SHARE handle 0x%x status 0x%x", hobj, p.status);
+    return 0;
+}
+
+int nvrm_export(Nvrm *rm, const NvrmMem *m, NvrmShare *out) {
+    if (!rm || !m || !out) return -1;
+    memset(out, 0, sizeof *out);
+    for (uint32_t i = 0; i < rm->live_count; i++) {
+        const NvrmLiveAlloc *e = &rm->live[i];
+        if (e->va == m->va && e->handle == m->handle && e->size == m->size && e->rm_live && !e->quarantined) {
+            if (rm_share_same_user(rm, m->handle) != 0) return -1;
+            out->hclient = rm->root;
+            out->hmemory = m->handle;
+            out->size = m->size;
+            return 0;
+        }
+    }
+    return -1;
+}
+
+int nvrm_import(Nvrm *rm, const NvrmShare *s, int read_only, NvrmMem *out) {
+    if (!rm) return -1;
+    if (!s || !out || !s->hclient || !s->hmemory || !s->size || (s->size & 0xfffull) || rm->faulted)
+        return fail(rm, "nvrm_import: bad share (client 0x%x mem 0x%x size 0x%lx) or faulted",
+                    s ? s->hclient : 0, s ? s->hmemory : 0, (unsigned long)(s ? s->size : 0));
+    if (rm->live_count >= NVRM_MAX_LIVE) return fail(rm, "live allocation table full (%d)", NVRM_MAX_LIVE);
+    if (rm->next_handle == UINT32_MAX) return fail(rm, "RM handle space exhausted");
+    memset(out, 0, sizeof *out);
+    uint64_t size = s->size;
+    uint64_t va = va_take(rm, size, 0x1000);
+    if (!va) return fail(rm, "GPU VA exhausted or overflowed");
+    void *res = mmap((void *)va, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0);
+    if (res != (void *)va) {
+        if (res != MAP_FAILED) munmap(res, size);
+        rm->faulted = 1;
+        return fail(rm, "VA 0x%lx unavailable", (unsigned long)va);
+    }
+    NVOS55_PARAMETERS d;
+    memset(&d, 0, sizeof d);
+    d.hClient = rm->root;
+    d.hParent = rm->device;
+    d.hObject = rm->next_handle++;
+    d.hClientSrc = s->hclient;
+    d.hObjectSrc = s->hmemory;
+    d.flags = NV04_DUP_HANDLE_FLAGS_NONE;
+    if (nv_ioctl(rm->fd_ctl, NV_ESC_RM_DUP_OBJECT, &d, sizeof d) != 0) {
+        rm->faulted = 1; /* unknown driver state: do not recycle this VA */
+        return fail(rm, "RM_DUP_OBJECT ioctl errno %d", errno);
+    }
+    if (d.status != NV_OK) {
+        /* Refused cleanly (owner gone, wrong handle, other user): nothing was created. */
+        if (munmap(res, size) != 0 || va_release(rm, va, size) != 0) { rm->faulted = 1; return -1; }
+        return fail(rm, "RM_DUP_OBJECT client 0x%x mem 0x%x status 0x%x", s->hclient, s->hmemory, d.status);
+    }
+    uint32_t h = d.hObject;
+    void *cpu = map_to_cpu(rm, h, size, (void *)va, read_only ? NVOS33_FLAGS_ACCESS_READ_ONLY : 0, 1,
+                           read_only ? PROT_READ : (PROT_READ | PROT_WRITE));
+    if (cpu != (void *)va) {
+        char why[sizeof rm->err];
+        memcpy(why, rm->err, sizeof why);
+        quarantine_allocation(rm, h, va, size, (void *)va, 0, 0);
+        return fail(rm, "import cpu map at 0x%lx failed: %s", (unsigned long)va, why);
+    }
+    uint8_t uvm_created = 0, dma_mapped = 0;
+    if (uvm_map(rm, va, size, h, &uvm_created, &dma_mapped, read_only)) {
+        quarantine_allocation(rm, h, va, size, cpu, uvm_created, dma_mapped);
+        return -1;
+    }
+    out->handle = h;
+    out->va = va;
+    out->size = size;
+    out->cpu = cpu;
+    rm->live[rm->live_count] = (NvrmLiveAlloc){ .handle = h, .va = va, .size = size, .cpu = cpu,
+                                                .uvm_live = 1, .dma_live = 1, .rm_live = 1, .cpu_live = 1 };
+    rm->live_count++;
+    return 0;
+}
+
 
 int nvrm_channel(Nvrm *rm) {
     if (!rm || rm->faulted || rm->chgroup || rm->channel_registered)

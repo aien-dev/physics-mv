@@ -113,7 +113,19 @@ static inline uint32_t nvrm_mthd(uint32_t subc, uint32_t mthd, uint32_t count) {
     return (2u << 28) | (count << 16) | (subc << 13) | (mthd >> 2);
 }
 
-#endif
 /* As nvrm_alloc, but the graphics chip does not cache it in L2. For memory
  * that a resident chip program polls while the CPU writes it. */
 int nvrm_alloc_gpu_uncached(Nvrm *rm, uint64_t size, NvrmMem *out);
+
+/* Cross-process sharing (L383): the owner names a live allocation (its RM client + memory handle); another
+ * process of the same user imports it as a duplicate mapped at its own VA, read-only when asked. The pages
+ * live until the importer frees its NvrmMem, even after the owner frees or exits. See nvrm.c nvrm_import(). */
+typedef struct {
+    uint32_t hclient;   /* owner Nvrm.root */
+    uint32_t hmemory;   /* owner NvrmMem.handle */
+    uint64_t size;      /* bytes, page multiple */
+} NvrmShare;
+int nvrm_export(Nvrm *rm, const NvrmMem *m, NvrmShare *out);
+int nvrm_import(Nvrm *rm, const NvrmShare *s, int read_only, NvrmMem *out);
+
+#endif /* PHYSICS_NVRM_H */
