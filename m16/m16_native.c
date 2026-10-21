@@ -91,6 +91,8 @@ static uint64_t now_ns(void) {
     return (uint64_t)t.tv_sec * 1000000000ull + (uint64_t)t.tv_nsec;
 }
 
+static uint64_t wait_sleeps;
+
 int m16_native_wait_marker(volatile uint32_t *marker, uint32_t expected, uint64_t timeout_ms) {
     return m16_native_wait_marker_ge(marker, expected, timeout_ms);
 }
@@ -102,10 +104,15 @@ int m16_native_wait_marker_ge(volatile uint32_t *marker, uint32_t target, uint64
         __builtin_add_overflow(now_ns(), duration, &end)) end = UINT64_MAX;
     while (now_ns() < end) {
         if ((int32_t)(*marker - target) >= 0) return 0;
+        __atomic_fetch_add(&wait_sleeps, 1, __ATOMIC_RELAXED);
         usleep(50);
         __asm__ volatile("yield");
     }
     return ((int32_t)(*marker - target) >= 0) ? 0 : -1;
+}
+
+uint64_t m16_native_wait_sleep_count(void) {
+    return __atomic_load_n(&wait_sleeps, __ATOMIC_RELAXED);
 }
 
 int m16_native_close(M16NativeContext *ctx) {

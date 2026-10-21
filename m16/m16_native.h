@@ -48,6 +48,10 @@ int  m16_native_wait_marker(volatile uint32_t *marker, uint32_t expected, uint64
  * or timeout_ms expires. Returns 0 once satisfied, -1 on timeout. */
 int  m16_native_wait_marker_ge(volatile uint32_t *marker, uint32_t target, uint64_t timeout_ms);
 
+/* Sleep-polls (usleep calls) made by the two waits above since process start. A wait the GPU
+ * answers inside the spin window adds none. */
+uint64_t m16_native_wait_sleep_count(void);
+
 /* Free all RM objects, mappings, and close file descriptors */
 int  m16_native_close(M16NativeContext *ctx);
 

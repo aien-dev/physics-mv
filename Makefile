@@ -34,3 +34,11 @@ mutants-m16-gpu-wait:
 	  echo "MUTANT $$flag killed by $$scen"; \
 	done
 	@echo "M16_GPU_WAIT_MUTANTS PASS (3/3 killed)"
+
+# Host test for m16_native_wait_marker(_ge) (L343): a fake GPU thread writes the marker; the NVRM symbols
+# m16_native.c references are left unresolved because the test never calls them.
+.PHONY: test-m16-native-wait
+test-m16-native-wait: tests/test_m16_native_wait.c m16/m16_native.c m16/m16_native.h
+	@mkdir -p build/m16_native_wait
+	$(CC) $(CFLAGS) -I m16 -I nvrm tests/test_m16_native_wait.c m16/m16_native.c -lpthread -Wl,--unresolved-symbols=ignore-all -o build/m16_native_wait/test
+	build/m16_native_wait/test
