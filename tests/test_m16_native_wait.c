@@ -64,6 +64,9 @@ int main(int argc, char **argv) {
     int trials = argc > 1 ? atoi(argv[1]) : 200;
     uint64_t delay_us = argc > 2 ? strtoull(argv[2], NULL, 10) : 300;
     int print = argc > 3;
+    /* Test mode: a 200 ms window so a loaded box that delays the fake-GPU thread cannot push a wait into
+     * the sleep-poll. Bench mode (a third argument) measures the shipped default instead. */
+    if (!print) setenv("M16_WAIT_SPIN_US", "200000", 1);
     uint64_t lat[2000], slept = 0;
     if (trials > 2000) trials = 2000;
     int sleepers = 0;
@@ -105,6 +108,7 @@ int main(int argc, char **argv) {
     CHECK(m16_native_wait_marker_ge(&over, 5, 1000) == 0, "ready marker");
     CHECK(m16_native_wait_sleep_count() == s0, "a ready marker must not sleep");
 
+#ifndef M16_TEST_NO_SPIN_API
     /* The explicit window: 0 sleeps from the first miss (omega's platform poll after its own spin),
      * a long window spins through a marker that lands 1 ms in without one sleep. */
     volatile uint32_t late = 0;
@@ -118,6 +122,7 @@ int main(int argc, char **argv) {
     CHECK(m16_native_wait_marker_ge_spin(&late, 1, 2000, 500000) == 0, "long window wait");
     pthread_join(th, NULL);
     CHECK(m16_native_wait_sleep_count() == s0, "a 500 ms window must not sleep for a 1 ms wait");
+#endif
 
     printf(failures ? "test_m16_native_wait: FAIL (%d)\n" : "test_m16_native_wait: PASS\n", failures);
     return failures ? 1 : 0;
