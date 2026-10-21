@@ -93,17 +93,54 @@ static uint64_t now_ns(void) {
 
 static uint64_t wait_sleeps;
 
+/* Window, in microseconds, the wait re-reads the marker back to back before it starts sleeping between reads.
+ * A sleep-poll costs about 100 us per wake (50 us asked, plus kernel timer slack), far more than a launch the
+ * device answers in tens of microseconds. 2000 is the window the daemon already ships (Qwen3-4B, 310 -> 268
+ * ms/token, aien-sovereign-core docs/inference/evidence/spin-20261007T0726Z). A wait that outlasts the window
+ * sleeps as before, so a long kernel costs at most this much extra CPU. M16_WAIT_SPIN_US overrides, 0 turns the
+ * spin off. */
+#define M16_WAIT_SPIN_US_DEFAULT 2000ull
+#define M16_WAIT_SPIN_US_MAX 1000000ull
+
+static uint64_t wait_spin_ns(void) {
+    static uint64_t cached = UINT64_MAX;
+    uint64_t v = __atomic_load_n(&cached, __ATOMIC_RELAXED);
+    if (v != UINT64_MAX) return v;
+    uint64_t us = M16_WAIT_SPIN_US_DEFAULT;
+    const char *e = getenv("M16_WAIT_SPIN_US");
+    if (e && *e) {
+        char *rest = NULL;
+        unsigned long long n = strtoull(e, &rest, 10);
+        if (*rest == 0 && e[0] != '-' && n <= M16_WAIT_SPIN_US_MAX) us = n;
+    }
+    v = us * 1000ull;
+    __atomic_store_n(&cached, v, __ATOMIC_RELAXED);
+    return v;
+}
+
 int m16_native_wait_marker(volatile uint32_t *marker, uint32_t expected, uint64_t timeout_ms) {
     return m16_native_wait_marker_ge(marker, expected, timeout_ms);
 }
 
 int m16_native_wait_marker_ge(volatile uint32_t *marker, uint32_t target, uint64_t timeout_ms) {
+    return m16_native_wait_marker_ge_spin(marker, target, timeout_ms, wait_spin_ns() / 1000ull);
+}
+
+int m16_native_wait_marker_ge_spin(volatile uint32_t *marker, uint32_t target, uint64_t timeout_ms,
+                                   uint64_t spin_us) {
     if (!marker) return -1;
     uint64_t duration, end;
     if (__builtin_mul_overflow(timeout_ms, 1000000ull, &duration) ||
         __builtin_add_overflow(now_ns(), duration, &end)) end = UINT64_MAX;
-    while (now_ns() < end) {
+    const uint64_t start = now_ns();
+    const uint64_t spin_end = start + spin_us * 1000ull;
+    uint64_t now;
+    while ((now = now_ns()) < end) {
         if ((int32_t)(*marker - target) >= 0) return 0;
+        if (now < spin_end) {
+            __asm__ volatile("yield");
+            continue;
+        }
         __atomic_fetch_add(&wait_sleeps, 1, __ATOMIC_RELAXED);
         usleep(50);
         __asm__ volatile("yield");

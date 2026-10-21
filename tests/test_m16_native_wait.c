@@ -11,6 +11,12 @@
 #include <unistd.h>
 
 static int failures;
+static uint64_t cpu_ns_total;
+static uint64_t thread_cpu_ns(void) {
+    struct timespec t;
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t);
+    return (uint64_t)t.tv_sec * 1000000000ull + (uint64_t)t.tv_nsec;
+}
 #define CHECK(cond, ...) do { if (!(cond)) { failures++; printf("FAIL %s:%d ", __FILE__, __LINE__); printf(__VA_ARGS__); printf("\n"); } } while (0)
 
 static uint64_t now_ns(void) {
@@ -39,7 +45,9 @@ static uint64_t one_wait(uint64_t delay_us, uint64_t *sleeps) {
     pthread_t th;
     uint64_t s0 = m16_native_wait_sleep_count();
     pthread_create(&th, NULL, writer_main, &w);
+    uint64_t c0 = thread_cpu_ns();
     int rc = m16_native_wait_marker_ge(&word, 0x16c0ffee, 2000);
+    cpu_ns_total += thread_cpu_ns() - c0;
     uint64_t seen = now_ns();
     pthread_join(th, NULL);
     CHECK(rc == 0, "wait returned %d", rc);
@@ -67,10 +75,10 @@ int main(int argc, char **argv) {
     }
     qsort(lat, (size_t)trials, sizeof lat[0], cmp_u64);
     if (print)
-        printf("BENCH delay_us=%llu trials=%d waits_that_slept=%d sleeps=%llu p50_ns=%llu p90_ns=%llu p99_ns=%llu\n",
+        printf("BENCH delay_us=%llu trials=%d waits_that_slept=%d sleeps=%llu p50_ns=%llu p90_ns=%llu p99_ns=%llu cpu_ns_per_wait=%llu\n",
                (unsigned long long)delay_us, trials, sleepers, (unsigned long long)slept,
                (unsigned long long)lat[trials / 2], (unsigned long long)lat[trials * 9 / 10],
-               (unsigned long long)lat[trials * 99 / 100]);
+               (unsigned long long)lat[trials * 99 / 100], (unsigned long long)(cpu_ns_total / (uint64_t)trials));
     /* A device that answers 300 us in must be seen without a single sleep-poll in nearly every wait. */
     CHECK(sleepers * 10 <= trials, "%d of %d waits sleep-polled although the marker landed after %llu us",
           sleepers, trials, (unsigned long long)delay_us);
@@ -96,6 +104,20 @@ int main(int argc, char **argv) {
     uint64_t s0 = m16_native_wait_sleep_count();
     CHECK(m16_native_wait_marker_ge(&over, 5, 1000) == 0, "ready marker");
     CHECK(m16_native_wait_sleep_count() == s0, "a ready marker must not sleep");
+
+    /* The explicit window: 0 sleeps from the first miss (omega's platform poll after its own spin),
+     * a long window spins through a marker that lands 1 ms in without one sleep. */
+    volatile uint32_t late = 0;
+    s0 = m16_native_wait_sleep_count();
+    CHECK(m16_native_wait_marker_ge_spin(&late, 1, 3, 0) == -1, "spin 0 timeout");
+    CHECK(m16_native_wait_sleep_count() > s0, "spin_us 0 must sleep-poll");
+    Writer lw = { &late, 1, 1000000ull, 0 };
+    pthread_t th;
+    s0 = m16_native_wait_sleep_count();
+    pthread_create(&th, NULL, writer_main, &lw);
+    CHECK(m16_native_wait_marker_ge_spin(&late, 1, 2000, 500000) == 0, "long window wait");
+    pthread_join(th, NULL);
+    CHECK(m16_native_wait_sleep_count() == s0, "a 500 ms window must not sleep for a 1 ms wait");
 
     printf(failures ? "test_m16_native_wait: FAIL (%d)\n" : "test_m16_native_wait: PASS\n", failures);
     return failures ? 1 : 0;
