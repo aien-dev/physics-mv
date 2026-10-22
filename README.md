@@ -1,3 +1,7 @@
+<!-- github-native-navigation -->
+[Source](https://github.com/aien-dev/physics-mv) · [Walkthrough](TEACHING.md) · [Replay receipt](TEACHING-REPLAY.txt) · [Issues](https://github.com/aien-dev/physics-mv/issues) · [Actual tags](https://github.com/aien-dev/physics-mv/tags)
+<!-- /github-native-navigation -->
+
 # PHYSICS
 
 Two things live here: the **FORGE** machine realization layer (C), and the historical **Atlas / PHYSICS boot artifacts** (AArch64 assembly) with their evidence. FORGE turns a verified Omega meaning into a concrete realization on the machine at hand (today the CPU and the NVIDIA GB10 GPU; a simulated analog provider exists for testing). It is realization and lowering, not a security gatekeeper: AEGIS verifies, and AIENOS owns the trusted substrate. This repository also holds `nvrm/`, the small C client that drives the GB10 directly through the open NVIDIA kernel interface (no CUDA).
