@@ -12,6 +12,10 @@ ATLAS AWAKENS. AIEN PROPOSES. OMEGA DEFINES. FORGE REALIZES. AEGIS VERIFIES. HAR
 
 Historical `PHYSICS_*` milestone names (for example `PHYSICS_BOOT`) are unchanged in evidence. The subsystem role was renamed FORGE by ADR 0014 in aien-architecture. The repository itself is still named `physics`: the planned rename to `forge` (aien-architecture `CURRENT_EXECUTION_PLAN.md`, step A2) has not been done.
 
+## How I built it: a small result you can reproduce
+
+I follow a FORGE request through descriptor binding, simulated lowering and AEGIS verification, then replay a wrong-program refusal. [The worked lesson](TEACHING.md) names each source function; [the replay record](TEACHING-REPLAY.txt) shows a GPU-free host result.
+
 ## Current state
 
 Research-grade and pre-alpha.

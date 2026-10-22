@@ -1,0 +1,25 @@
+# Teaching replay record, 2026-10-22
+
+Repository: `aien-dev/physics-mv`
+Base source revision: `14273c5ce7d13fbc6e410c4fed9aa36837918177` (fresh detached Spark checkout; documentation branch is a separate checkout)
+Host: `spark-b87b`, Linux 7.0.0-1019-nvidia aarch64
+Tools: gcc 13.3.0, git 2.43.0, QEMU 8.2.2, Rust/cargo 1.98.1 (only relevant tools used)
+Invocation: `quiet-build` wrapped CPU-heavy compilation where used; it does not change the test's assertion.
+
+From a fresh checkout detached at the base revision:
+
+```sh
+tests/gates/run.sh forge-aegis
+```
+
+Observed process exit: `0`
+Observed result: FORGE AEGIS host results: TOTAL=13 PASSED=13 FAILED=0
+Raw stdout/stderr: [TEACHING-REPLAY.raw.txt](TEACHING-REPLAY.raw.txt) (SHA-256 `ef934f1e81cc6ab914daf6912bcb7dbdf22047fadb1ddb2d081ce47cfa3e05d2`).
+
+Source file hashes at the tested base:
+- `forge/forge_realize.c`: SHA-256 `e3a369cefa17f623bac35a4b4684fa7f569a134cd1dc6432e6b5061b4f83efc6`
+- `forge/forge_descriptor.c`: SHA-256 `57e3d1aac909882a659dbf7586a571c76df49d100bb79d6d2d2a30938611a6be`
+- `tests/test_forge_aegis_host.c`: SHA-256 `20c2ab0b15f2113941efbf7d26b61f6b07677257256ff98ce3b5f386cccd1cdf`
+- `tests/run_forge_aegis_host_gates.sh`: SHA-256 `6aa34ade6b4ca8bf6466983c88e6170677b3d7f10ba4a91f08570e8a1025ee51`
+
+Limits: this is a scoped fixture, not a qualification of unrelated gates or physical hardware. The Omega program fixture is separate from OSC source compilation. No model was loaded.
