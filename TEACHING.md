@@ -16,3 +16,8 @@ tests/gates/run.sh forge-aegis
 ```
 
 Expected exit is 0 with `REALIZE_OK`, `VERIFY_OWN_REQUEST_ACCEPTED` and `NEG_RESULT_REPLAYED_TO_OTHER_PROGRAM_REFUSED` reported as PASS. See my [raw replay](TEACHING-REPLAY.txt) for the observed output and environment. This is a host seam test. The analog provider is simulation; the older assembly boot receipts are QEMU evidence; neither demonstrates a current physical GB10 execution. Hardware routes remain separate in [README.md](README.md) and [the gate manifests](tests/gates).
+
+
+### Parent fresh-checkout replay
+
+A separate coordination replay is retained in [the parent receipt](docs/parent-replay-2026-10-22.txt). Its scope and observed exit are explicit; source review and final desk qualification remain separate. A recorded absence or expected failing baseline is not a passing implementation.

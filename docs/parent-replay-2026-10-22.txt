@@ -1,0 +1,38 @@
+2026-10-22 parent coordination replay
+Repository: aien-dev/physics-mv
+Exact executable source: 14273c5ce7d13fbc6e410c4fed9aa36837918177
+Observed exit: 0; expected by the documented bounded recipe: 0
+Scope: Host FORGE/AEGIS seam passed 13/13; no GPU qualification
+
+This is a separate fresh temporary checkout, not reuse of the author build directory. Git objects may be shared as immutable source storage; compiled outputs were not copied. The original author receipt is preserved. This replay is not a fresh-context source review, full repository suite, protected-branch admission, live service check, security audit or physical-hardware qualification. The website's nonzero baseline is a retained FAIL, not a passing product build. Missing implementation inspections remain absence checks, not executed features.
+Host: Spark Linux7.0.0-1019-nvidia aarch64; relevant tool versions appear below. Builds were run serially via quiet-build.
+
+RAW OBSERVED OUTPUT:
+PARENT FRESH REPLAY
+REPO aien-dev/physics-mv
+SOURCE 14273c5ce7d13fbc6e410c4fed9aa36837918177
+COMMAND
+tests/gates/run.sh forge-aegis
+
+ENVIRONMENT
+Linux aarch64
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+rustc 1.98.1 (48a229cea 2026-09-01)
+14273c5ce7d13fbc6e410c4fed9aa36837918177
+=== FORGE AEGIS host gates ===
+PASS build test_forge_aegis_host
+=== FORGE AEGIS verifier host checks (no GPU) ===
+[PASS] KAT_DESCRIPTOR_DIGEST
+[PASS] REALIZE_OK
+[PASS] VERIFY_OWN_REQUEST_ACCEPTED
+[PASS] NEG_RESULT_REPLAYED_TO_OTHER_PROGRAM_REFUSED
+[PASS] NEG_RESULT_REPLAYED_TO_OTHER_OPCODE_COUNT_REFUSED
+[PASS] NEG_REQUEST_FOR_OTHER_TARGET_REFUSED
+[PASS] NEG_CODE_DIGEST_MISMATCH_REFUSED
+[PASS] NEG_STALE_IDENTITY_REFUSED
+[PASS] NEG_OTHER_DESCRIPTOR_REFUSED
+[PASS] NEG_SUBMIT_UNVERIFIED_REFUSED
+[PASS] NEG_SUBMIT_BAD_TOKEN_REFUSED
+[PASS] NEG_SUBMIT_POST_VERIFY_MUTATION_REFUSED
+[PASS] NEG_SUBMIT_WITHOUT_NVRM_REFUSED
+FORGE AEGIS host results: TOTAL=13 PASSED=13 FAILED=0
