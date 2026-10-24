@@ -14,6 +14,37 @@
     }
   ],
   "extensions": {
+    "generated": {
+      "children": [
+        {
+          "digest": "9c9c4d06dfa1aae64dc3a63cabf35f42baefd5493862090a7759eec30be07d5f",
+          "last_commit": "d52759d",
+          "name": "analog-sim",
+          "purpose": "Directory forge/analog-sim. Purpose not yet described by a human."
+        },
+        {
+          "digest": "843298f1f241ac4785662d45297410b3aaedb3dccb713c0ac02c490ac5c6751a",
+          "last_commit": "dcc7c21",
+          "name": "form",
+          "purpose": "FORGE REALIZATION FORM V1: substrate-neutral physical-form realization IR (LINEAR_OPERATOR), can"
+        },
+        {
+          "digest": "fc4c0f18901b991499e4332c3b3bd75a3797b15f83c17b659aa5af5dccb81d91",
+          "last_commit": "ff2c62e",
+          "name": "v2",
+          "purpose": "Directory forge/v2. Purpose not yet described by a human."
+        }
+      ],
+      "children_root": "sha256:7665c3ed77e0cefc41c351050ca587653390e9355cccb84436397bf3c63988c3",
+      "compiled_at": "2026-10-24T04:15:32Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:957aafdcf49b5e013235254017b4c2984ca8e3b0bb2f7877eabff493e765c246",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 12,
+      "generated_at_commit": "ed24d4ae52b4a623b0b03f8e545e4aa0b5abf342",
+      "source_tree": "sha256:e54d100fa90619b8f0822bfd50db8d788953abc832b471593e44471dad6e0064"
+    },
     "owner_lane": "",
     "provenance": {
       "entries": [
