@@ -100,4 +100,4 @@ Backfilled history (marked as such, not live whispers) is in [docs/crumbs/BACKFI
 
 ## License
 
-GNU Affero General Public License v3.0, see [LICENSE](LICENSE). The NVIDIA headers in `third_party/nvidia-open-580.173.02/` keep NVIDIA's own license terms (MIT except where that file notes otherwise), see [COPYING](third_party/nvidia-open-580.173.02/COPYING).
+Apache License 2.0 with LLVM Exceptions, see [LICENSE](LICENSE). The NVIDIA headers in `third_party/nvidia-open-580.173.02/` keep NVIDIA's own license terms (MIT except where that file notes otherwise), see [COPYING](third_party/nvidia-open-580.173.02/COPYING).
