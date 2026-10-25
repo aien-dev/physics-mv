@@ -691,9 +691,18 @@ int nvrm_free(Nvrm *rm, NvrmMem *m) {
     return 0;
 }
 
-/* One more GPFIFO channel in rm->chgroup on rm->ctxshare: the same steps as channel 0 below (ring + USERD
+/* One more GPFIFO channel in rm->chgroup on its own asynchronous subcontext: the same steps as channel 0 below (ring + USERD
  * GPU-uncached, notifier, GPFIFO, compute object, work-submit token, UVM_REGISTER_CHANNEL). */
 static int chan_extra(Nvrm *rm, NvrmChan *c) {
+    /* NVIDIA nvos.h:3195-3243, FERMI_CONTEXT_SHARE_A represents a subcontext.
+     * Reusing channel 0's context share serialized the C4 event control on GB10;
+     * a separate ASYNC allocation lets the independent queue run before its peer.
+     * n_extra is counted before this call, so partial construction is unwound too. */
+    NV_CTXSHARE_ALLOCATION_PARAMETERS cs;
+    memset(&cs, 0, sizeof cs);
+    cs.hVASpace = rm->vaspace;
+    cs.flags = NV_CTXSHARE_ALLOCATION_FLAGS_SUBCONTEXT_ASYNC;
+    if (rm_alloc(rm, rm->chgroup, FERMI_CONTEXT_SHARE_A, &cs, sizeof cs, &c->ctxshare)) return -1;
     c->entries = 1024;
     if (nvrm_alloc_gpu_uncached(rm, 0x10000, &c->fifo)) return -1;
     if (nvrm_alloc(rm, 0x100000, &c->notifier)) return -1;
@@ -707,7 +716,7 @@ static int chan_extra(Nvrm *rm, NvrmChan *c) {
     c->userd_off = c->entries * 8;
     gp.userdOffset[0] = c->userd_off;
     gp.engineType = 0;
-    gp.hContextShare = rm->ctxshare;
+    gp.hContextShare = c->ctxshare;
     if (rm_alloc(rm, rm->chgroup, rm->gpfifo_class, &gp, sizeof gp, &c->gpfifo)) return -1;
     if (rm_alloc(rm, c->gpfifo, rm->compute_class, NULL, 0, &c->compute_obj)) return -1;
     NVC36F_CTRL_CMD_GPFIFO_GET_WORK_SUBMIT_TOKEN_PARAMS tk = { .workSubmitToken = 0xffffffffu };
@@ -747,6 +756,8 @@ static int chan_extra_destroy(Nvrm *rm, NvrmChan *c) {
     c->compute_obj = 0;
     if (c->gpfifo && rm_free(rm, rm->chgroup, c->gpfifo)) return -1;
     c->gpfifo = 0;
+    if (c->ctxshare && rm_free(rm, rm->chgroup, c->ctxshare)) return -1;
+    c->ctxshare = 0;
     if (c->fifo.handle && nvrm_free(rm, &c->fifo)) return -1;
     if (c->notifier.handle && nvrm_free(rm, &c->notifier)) return -1;
     if (c->channel_va_size) {
