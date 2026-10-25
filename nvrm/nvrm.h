@@ -73,6 +73,7 @@ typedef struct {
 #define NVRM_MAX_EXTRA_CHANNELS 3
 typedef struct {
     uint32_t gpfifo, compute_obj;
+    uint32_t ctxshare;              /* Owned asynchronous subcontext, distinct from channel 0. */
     NvrmMem  fifo;                  /* GPFIFO ring, then USERD at userd_off */
     NvrmMem  notifier;              /* channel error notifier */
     uint32_t entries, userd_off;
@@ -139,7 +140,8 @@ int  nvrm_alloc(Nvrm *rm, uint64_t size, NvrmMem *out);
 int  nvrm_free(Nvrm *rm, NvrmMem *m);
 int  nvrm_channel(Nvrm *rm);
 /* nvrm_channel plus `extra` (0..NVRM_MAX_EXTRA_CHANNELS) more GPFIFO channels in
- * the same group, all registered with UVM before the one GPFIFO_SCHEDULE (the
+ * the same group and address space, each with its own asynchronous subcontext,
+ * all registered with UVM before the one GPFIFO_SCHEDULE (the
  * RM refuses to schedule a group holding an unschedulable channel,
  * kernel_channel_group_api.c:1095-1107). extra = 0 is nvrm_channel exactly. */
 int  nvrm_channel_n(Nvrm *rm, uint32_t extra);
