@@ -7,8 +7,8 @@
   "milestone": "PHYSICS_BOOT_NATIVE (pending)",
   "design_doc": "docs/native-frame-authority.md",
   "provenance_legend": {
-    "measured_native_uefi": "Observed by native AIENOS code on Machine 1 after firmware (aien-dev/aienos evidence/m2_first_boot_2026-09-24.md).",
-    "measured_linux": "Observed read-only under Linux 7.0.0-1019-nvidia on Machine 1 (/proc/iomem, dmesg, /proc/meminfo) on 2026-09-26, or aien-dev/aienos evidence/gb10_linux_readonly_2026-09-25.md. Linux view, not a native proof.",
+    "measured_native_uefi": "Observed by native AIENOS code on Machine 1 after firmware (aien-dev/aienux evidence/m2_first_boot_2026-09-24.md).",
+    "measured_linux": "Observed read-only under Linux 7.0.0-1019-nvidia on Machine 1 (/proc/iomem, dmesg, /proc/meminfo) on 2026-09-26, or aien-dev/aienux evidence/gb10_linux_readonly_2026-09-25.md. Linux view, not a native proof.",
     "assumed": "Not measured by this project; must be confirmed before native qualification.",
     "derived": "Arithmetic over other values.",
     "owner_decision": "Policy value the owner must set."

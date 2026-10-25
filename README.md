@@ -41,7 +41,7 @@ Research-grade and pre-alpha.
 ## How this fits with the other repositories
 
 - [omega](https://github.com/aien-dev/omega-mv) pins this repository by commit (`physics.lock`) and uses `nvrm/` and `m16/` for the native GB10 path.
-- [aienos](https://github.com/aien-dev/aienos-mv) is the operating system.
+- [aienos](https://github.com/aien-dev/aienux) is the operating system.
 - [aien-architecture](https://github.com/aien-dev/aien-architecture-mv) owns status, the ADRs and the crumb tool.
 - [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core-mv) holds the test runner (`aien-test`) used by the Spark judge.
 - [aien-receipts](https://github.com/aien-dev/aien-receipts) stores the signed test results the judge publishes.
