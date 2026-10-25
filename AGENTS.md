@@ -73,7 +73,7 @@ Steps that need the real GB10 on the DGX Spark: `forge-gate34` (`tests/run_forge
 - Do not edit committed binaries (`physics.bin`, `atlas*.bin`, tracked `nvrm/` binaries) without the matching rebuilt evidence.
 - GPU gates run only on the DGX Spark, through the lock helper. A gate that took the lock again under a parent that holds it would wait forever; `tests/test_gb10_lock.sh` checks the helper skips it.
 - A head that changes `.aien/`, `tests/gates/`, `.github/workflows/`, `.forgejo/` or `tools/aien-test/` is `BLOCKED_OPERATOR` and needs an operator run on the Spark. Ask before touching those paths.
-- The DGX Spark is the only test judge. The one workflow, `.github/workflows/aien-verification.yml`, builds nothing: it checks crumbs and verifies the Spark's signed bundle. `main` requires the `AIEN Verification` check. A pull request merges only after the Spark judge passes it and a maintainer adds the `ready-to-merge` label (see `docs/PIPELINE.md`). Do not add that label yourself unless a maintainer asked you to.
+- The DGX Spark is the only test judge. The one workflow, `.github/workflows/aien-verification.yml`, builds nothing from this repository: its checks on pull requests are advisory (crumb verify and, for enrolled repositories, a portable smoke set), and on `alpha/*` tags it verifies the Spark's signed bundle. Nothing on GitHub gates a merge; `main` requires no status check. The local Spark pipeline merges a pull request only after a maintainer adds the `ready-to-merge` label and its gates pass on the current head (see `docs/PIPELINE.md`). Do not add that label yourself unless a maintainer asked you to.
 
 ## Further reading
 
