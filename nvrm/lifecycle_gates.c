@@ -276,7 +276,10 @@ static int gate_gpu_submit_after_churn(Nvrm *rm) {
         fprintf(stderr, "  submit: pushbuffer alloc failed: %s\n", rm->err);
         return -1;
     }
-    if (nvrm_alloc(rm, 0x1000, &marker_mem) != 0) {
+    /* The CPU polls this marker, so it must be GPU-uncached: a cacheable
+     * (NVOS32_ATTR2_GPU_CACHEABLE_YES) marker's store sits in the chip's L2 and
+     * the CPU can read 0 forever (the same bug fixed for M16 in 9e7dd87). */
+    if (nvrm_alloc_gpu_uncached(rm, 0x1000, &marker_mem) != 0) {
         fprintf(stderr, "  submit: marker alloc failed: %s\n", rm->err);
         return -1;
     }
