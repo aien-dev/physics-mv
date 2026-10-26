@@ -22,8 +22,16 @@ JSON_CANON=
 if [ -n "$OMEGA_DIR" ]; then
     [ -f "$OMEGA_DIR/tools/json_canon.c" ] || { echo "usage: $0 [OMEGA_DIR] (an omega checkout with tools/json_canon.c)"; exit 2; }
     JSON_CANON=$TMP/json_canon
+    # omega moved SHA-256 into a generated Omega unit (450bbefd4, OM-2): the
+    # implementation is src/omega_om_units.c now and src/sha256.c is gone.
+    # Use the unit when the checkout has it, else the hand-written file.
+    if [ -f "$OMEGA_DIR/src/omega_om_units.c" ]; then
+        SHA256_IMPL=$OMEGA_DIR/src/omega_om_units.c
+    else
+        SHA256_IMPL=$OMEGA_DIR/src/sha256.c
+    fi
     gcc -std=gnu11 -O2 -Wall -Wextra -Werror -I"$OMEGA_DIR/src" -o "$JSON_CANON" \
-        "$OMEGA_DIR/tools/json_canon.c" "$OMEGA_DIR/src/sha256.c" -lm || { echo "FAIL: cannot build json_canon"; exit 1; }
+        "$OMEGA_DIR/tools/json_canon.c" "$SHA256_IMPL" -lm || { echo "FAIL: cannot build json_canon"; exit 1; }
 fi
 fails=0 passes=0
 ok() { echo "  [PASS] $1"; passes=$((passes + 1)); }
