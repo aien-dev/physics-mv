@@ -25,6 +25,20 @@ int  m16_native_open(M16NativeContext *ctx);
 int  m16_native_alloc_memory(M16NativeContext *ctx, size_t size, void **cpu_addr, uint64_t *gpu_va);
 int  m16_native_free_memory(M16NativeContext *ctx, void *cpu_addr);
 
+/* Uncached sibling of m16_native_alloc_memory: the chip stores straight to memory
+ * instead of holding the write in its L2. nvos.h, NVOS32_ATTR2_GPU_CACHEABLE_YES:
+ * "For system memory this will not be coherent with direct CPU mappings." Use this
+ * for any word the CPU polls. */
+int  m16_native_alloc_memory_uncached(M16NativeContext *ctx, size_t size, void **cpu_addr, uint64_t *gpu_va);
+
+/* Offset and payload of the second marker the hardened release stream writes after
+ * its L2 flush (the block m16/m16_concurrent.c proved on the chip). */
+#define M16_MARKER2_OFF     0x10u
+#define M16_MARKER2_PAYLOAD 0x46464646u
+
+/* Release stream, then L2_FLUSH_DIRTY, then a second release at marker_va + M16_MARKER2_OFF. */
+int  m16_native_build_release_flushed(uint32_t *words, uint64_t marker_va, uint32_t payload, uint32_t compute_class);
+
 /* Create channel group, context share, GPFIFO ring, and schedule channel */
 int  m16_native_create_channel(M16NativeContext *ctx);
 
