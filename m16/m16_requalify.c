@@ -4,7 +4,8 @@
  * Sequence:
  *   1. Initialize raw RM client (zero libcuda).
  *   2. Create independent channel, USERD, and obtain work-submit token.
- *   3. Allocate coherent marker memory, initialize marker = 0.
+ *   3. Allocate a GPU-uncached marker page (marker and marker2 = 0), so the
+ *      chip's store reaches memory instead of sitting in its L2.
  *   4. Construct M16 semaphore-release method stream (expected payload: 0x16c0ffee).
  *   5. Enqueue work to GPFIFO ring WITHOUT ringing doorbell.
  *   6. Negative control: wait 100ms, assert marker remains strictly 0.
@@ -58,18 +59,20 @@ int main(int argc, char **argv) {
 
     void *marker_cpu = NULL;
     uint64_t marker_va = 0;
-    if (m16_native_alloc_memory(&ctx, 0x1000, &marker_cpu, &marker_va) != 0) {
+    if (m16_native_alloc_memory_uncached(&ctx, 0x1000, &marker_cpu, &marker_va) != 0) {
         fprintf(stderr, "FATAL: alloc marker failed: %s\n", ctx.rm.err);
         m16_native_close(&ctx);
         return 1;
     }
     volatile uint32_t *marker = (volatile uint32_t *)marker_cpu;
+    volatile uint32_t *marker2 = (volatile uint32_t *)((volatile uint8_t *)marker_cpu + M16_MARKER2_OFF);
     *marker = 0;
-    printf("[OBSERVED] Coherent marker allocated at VA=0x%lx CPU=%p (initial=0x%08x)\n",
-           (unsigned long)marker_va, marker_cpu, *marker);
+    *marker2 = 0;
+    printf("[OBSERVED] Uncached marker page at VA=0x%lx CPU=%p (marker=0x%08x marker2=0x%08x)\n",
+           (unsigned long)marker_va, marker_cpu, *marker, *marker2);
 
-    uint32_t methods[32];
-    int nwords = m16_native_build_release(methods, marker_va, 0x16c0ffee, ctx.rm.compute_class);
+    uint32_t methods[64];
+    int nwords = m16_native_build_release_flushed(methods, marker_va, 0x16c0ffee, ctx.rm.compute_class);
     if (nwords <= 0) {
         fprintf(stderr, "FATAL: build release failed\n");
         m16_native_close(&ctx);
@@ -88,8 +91,9 @@ int main(int argc, char **argv) {
 
     /* Wait 100ms and verify marker has NOT changed */
     usleep(100000);
-    printf("[OBSERVED] Marker after 100ms without doorbell: 0x%08x (expected 0x00000000)\n", *marker);
-    if (*marker != 0) {
+    printf("[OBSERVED] Markers after 100ms without doorbell: 0x%08x / 0x%08x (expected 0x00000000 / 0x00000000)\n",
+           *marker, *marker2);
+    if (*marker != 0 || *marker2 != 0) {
         fprintf(stderr, "FATAL: Negative control failed: marker changed without doorbell!\n");
         m16_native_close(&ctx);
         return 2;
@@ -110,6 +114,14 @@ int main(int argc, char **argv) {
     }
     printf("[OBSERVED] Marker after doorbell rung: 0x%08x (expected 0x16c0ffee)\n", *marker);
     printf("POSITIVE_CONTROL_PASS: Marker successfully updated to 0x16c0ffee upon doorbell store.\n");
+
+    if (m16_native_wait_marker(marker2, M16_MARKER2_PAYLOAD, 2000) != 0) {
+        fprintf(stderr, "FATAL: Positive control failed: timeout waiting for the post-flush marker! Actual=0x%08x\n",
+                *marker2);
+        m16_native_close(&ctx);
+        return 3;
+    }
+    printf("[OBSERVED] Second marker after the L2 flush: 0x%08x (expected 0x%08x)\n", *marker2, M16_MARKER2_PAYLOAD);
 
     /* Step 3: Process mappings audit */
     int cuda_mapped = check_proc_maps();

@@ -41,6 +41,45 @@ int m16_native_free_memory(M16NativeContext *ctx, void *cpu_addr) {
     return -1;
 }
 
+/* Uncached sibling of m16_native_alloc_memory. nvos.h, NVOS32_ATTR2_GPU_CACHEABLE_YES:
+ * "For system memory this will not be coherent with direct CPU mappings." A word the CPU
+ * polls must live in the NO class, or the chip's store sits in its L2 and arrives about a
+ * second later, sometimes never (spark-hardware-manual rule 4.1). */
+int m16_native_alloc_memory_uncached(M16NativeContext *ctx, size_t size, void **cpu_addr, uint64_t *gpu_va) {
+    if (!ctx || !cpu_addr || !gpu_va) return -1;
+    for (size_t i = 0; i < sizeof ctx->legacy_allocs / sizeof ctx->legacy_allocs[0]; i++) {
+        NvrmMem *mem = &ctx->legacy_allocs[i];
+        if (mem->handle) continue;
+        if (nvrm_alloc_gpu_uncached(&ctx->rm, size, mem) != 0) return -1;
+        *cpu_addr = mem->cpu;
+        *gpu_va = mem->va;
+        return 0;
+    }
+    return -1;
+}
+
+/* The hardened marker stream, the same block m16/m16_concurrent.c proved on the chip:
+ * WFI release of payload at marker_va, L2_FLUSH_DIRTY mem-op (NVC96F_MEM_OP_A..D =
+ * 0x28..0x34, D bits 31:27 = 0x10), then a second WFI release of M16_MARKER2_PAYLOAD at
+ * marker_va + M16_MARKER2_OFF. Same block as omega src/omega_numeric_gb10.c (C3). */
+int m16_native_build_release_flushed(uint32_t *w, uint64_t marker_va, uint32_t payload, uint32_t cls) {
+    int n = m16_native_build_release(w, marker_va, payload, cls);
+    if (n < 0) return -1;
+    w[n++] = nvrm_mthd(0, 0x0028, 4);
+    w[n++] = 0;
+    w[n++] = 0;
+    w[n++] = 0;
+    w[n++] = (0x10u << 27);
+    uint64_t m2 = marker_va + M16_MARKER2_OFF;
+    w[n++] = nvrm_mthd(0, 0x005c, 5);
+    w[n++] = (uint32_t)m2;
+    w[n++] = (uint32_t)(m2 >> 32);
+    w[n++] = M16_MARKER2_PAYLOAD;
+    w[n++] = 0;
+    w[n++] = 0x1 | (1u << 20);
+    return n;
+}
+
 int m16_native_create_channel(M16NativeContext *ctx) {
     if (!ctx) return -1;
     if (nvrm_channel(&ctx->rm) != 0) return -1;
