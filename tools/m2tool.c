@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 void sha256_compute(const uint8_t *data, uint64_t len, uint8_t scratch_buf[128],
                     uint32_t out_digest[8]);
@@ -73,6 +74,17 @@ static int parse_u64(const char *s, uint64_t *v) {
     if (errno || *end) return fail("bad number: %s", s);
     *v = x;
     return 0;
+}
+
+static int parse_literal(const char *s, uint64_t *value) {
+    if (!isxdigit((unsigned char)*s)) return 0;
+    char *end;
+    errno = 0;
+    unsigned long long parsed = strtoull(s, &end, 16);
+    if (errno || end == s || (*end && *end != ' ' && *end != '\t' &&
+                               *end != '<' && *end != '\n')) return 0;
+    *value = parsed;
+    return 1;
 }
 
 static void put_hex(const uint8_t *p, uint64_t n) {
@@ -647,8 +659,10 @@ static int cmd_audit_verify(int argc, char **argv) {
         if (comma) {
             const char *lit = comma + 1;
             while (*lit == ' ' || *lit == '\t') lit++;
-            uint64_t lit_addr = strtoull(lit, NULL, 16);
-            if (lit_addr >= 0x40200000 && lit_addr + 8 <= 0x40200000 + bin_sz) {
+            uint64_t lit_addr = 0;
+            if (parse_literal(lit, &lit_addr) && lit_addr >= 0x40200000 &&
+                lit_addr - 0x40200000 <= bin_sz &&
+                bin_sz - (lit_addr - 0x40200000) >= 8) {
                 uint64_t offset = lit_addr - 0x40200000;
                 uint64_t sp_val = 0;
                 for (int i = 0; i < 8; i++) sp_val |= (uint64_t)bin_buf[offset + i] << (8 * i);
@@ -659,8 +673,17 @@ static int cmd_audit_verify(int argc, char **argv) {
                     printf("  FAIL: Unexpected SP value 0x%08llx\n", (unsigned long long)sp_val);
                     disjoint_ok = 0;
                 }
+            } else {
+                printf("  FAIL: SP literal outside binary or malformed\n");
+                disjoint_ok = 0;
             }
+        } else {
+            printf("  FAIL: SP literal operand missing\n");
+            disjoint_ok = 0;
         }
+    } else {
+        printf("  FAIL: SP setup missing from decode\n");
+        disjoint_ok = 0;
     }
 
     printf("  Static Access Bounds:   All MMIO writes target PL011 (0x09000000) or stack/tables [OK]\n");
@@ -1066,23 +1089,49 @@ static int cmd_verify_no_auth(int argc, char **argv) {
 
 static int cmd_get_symbol(int argc, char **argv) {
     if (argc != 3) return fail("usage: %s <elf_file> <symbol_name>", argv[0]);
-    char cmd[512];
-    snprintf(cmd, sizeof(cmd), "aarch64-linux-gnu-nm %s", argv[1]);
-    FILE *p = popen(cmd, "r");
-    if (!p) return fail("cannot run nm on %s", argv[1]);
+    int pipefd[2];
+    if (pipe(pipefd) < 0) return fail("cannot create nm pipe");
+    pid_t pid = fork();
+    if (pid < 0) {
+        close(pipefd[0]); close(pipefd[1]);
+        return fail("cannot fork nm");
+    }
+    if (pid == 0) {
+        close(pipefd[0]);
+        if (dup2(pipefd[1], STDOUT_FILENO) < 0) _exit(127);
+        close(pipefd[1]);
+        execlp("aarch64-linux-gnu-nm", "aarch64-linux-gnu-nm",
+               "--", argv[1], (char *)NULL);
+        _exit(127);
+    }
+    close(pipefd[1]);
+    FILE *p = fdopen(pipefd[0], "r");
+    if (!p) {
+        close(pipefd[0]);
+        int status;
+        while (waitpid(pid, &status, 0) < 0 && errno == EINTR) {}
+        return fail("cannot read nm output");
+    }
     char line[256];
+    char found[64] = "";
     while (fgets(line, sizeof(line), p)) {
         char addr_s[64], type_s[16], name_s[128];
-        if (sscanf(line, "%63s %15s %127s", addr_s, type_s, name_s) == 3) {
-            if (strcmp(name_s, argv[2]) == 0) {
-                pclose(p);
-                printf("0x%s\n", addr_s);
-                return 0;
-            }
+        if (sscanf(line, "%63s %15s %127s", addr_s, type_s, name_s) == 3 &&
+            strcmp(name_s, argv[2]) == 0) {
+            snprintf(found, sizeof(found), "%s", addr_s);
         }
     }
-    pclose(p);
-    return fail("symbol %s not found in %s", argv[2], argv[1]);
+    int read_error = ferror(p);
+    fclose(p);
+    int status;
+    while (waitpid(pid, &status, 0) < 0) {
+        if (errno != EINTR) return fail("cannot wait for nm");
+    }
+    if (read_error || !WIFEXITED(status) || WEXITSTATUS(status) != 0)
+        return fail("nm failed on %s", argv[1]);
+    if (!*found) return fail("symbol %s not found in %s", argv[2], argv[1]);
+    printf("0x%s\n", found);
+    return 0;
 }
 
 static const struct {

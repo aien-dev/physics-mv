@@ -9,6 +9,7 @@ Every model below did real work. A model is listed only for work it did. The orc
 | Codex | Code review of the Gate 3/4 receipt writer: one finding (binaries were hashed after the GPU lock was released), fixed |
 | Grok | Code review of the Gate 3/4 receipt writer: three findings (empty binary hash on PASS, blobs symlink, existing blob mode), fixed |
 | Gemini | Code review of the Gate 3/4 receipt writer (no findings) |
+| OpenAI Codex GPT-6 Sol | M2 host verifier literal bounds and argv execution, private qualification output, and the historical M16 checksum-path provenance mapping |
 
 This table is built from the model credit lines in this repository's commit history and the review notes in its pull requests. Commits without such a line are not attributed here; add rows only for work that can be traced to a model.
 

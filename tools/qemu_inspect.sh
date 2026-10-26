@@ -58,8 +58,12 @@ to_dec() {  # strict unsigned number -> decimal; empty on error
   printf '%d' "$1"
 }
 
+umask 077
+[ ! -L "$OUT" ] || die "output directory must not be a symlink"
 mkdir -p "$OUT"
 OUT=$(cd "$OUT" && pwd -P)
+[ "$(stat -c %u "$OUT")" = "$(id -u)" ] || die "output directory is not owned by caller"
+[ -z "$(find "$OUT" -maxdepth 0 -perm /077 -print)" ] || die "output directory is not private"
 SOCK=$OUT/qmp.sock
 rm -f "$OUT/serial.txt" "$OUT/qmp.log" "$SOCK"
 
