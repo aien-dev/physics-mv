@@ -103,3 +103,15 @@ Backfilled history (marked as such, not live whispers) is in [docs/crumbs/BACKFI
 ## License
 
 Apache License 2.0 with LLVM Exceptions, see [LICENSE](LICENSE). The NVIDIA headers in `third_party/nvidia-open-580.173.02/` keep NVIDIA's own license terms (MIT except where that file notes otherwise), see [COPYING](third_party/nvidia-open-580.173.02/COPYING).
+
+## Human-Directed Agentic Engineering
+
+Development follows Human-Directed Agentic Engineering (HDAE): humans define goals,
+architecture, constraints, acceptance criteria, and stopping points; agents implement,
+execute checks, diagnose failures, and revise within those boundaries. Human review
+retains responsibility for claims, acceptance, and release decisions. This describes
+current development, not a retrospective claim about historical experiments or receipts.
+
+For the documented method and a systems-software case study, see Gregory M. Kurtzer,
+*Ginux: Building an Independent Kernel That Runs Linux Userspace through Human-Directed
+Agentic Engineering* (2026), https://doi.org/10.5281/zenodo.23682548.
