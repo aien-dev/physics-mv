@@ -15,6 +15,7 @@ Every model below did real work. A model is listed only for work it did. The orc
 | Grok | Code review of the Gate 3/4 receipt writer: three findings (empty binary hash on PASS, blobs symlink, existing blob mode), fixed |
 | Gemini | Code review of the Gate 3/4 receipt writer (no findings) |
 | OpenAI GPT-6.1 Sol | Current HDAE development wording and Gregory M. Kurtzer citation in README and contributor guidance (2026-10-28); no implementation or historical receipt changes |
+| Grok 4.7 | README alignment with ADR 0045: this repository is part of Sovereign Intelligence (SI). The Every repository index lists it under CUDA++ runtime (2026-10-30) |
 
 This table is built from the model credit lines in this repository's commit history and the review notes in its pull requests. Commits without such a line are not attributed here; add rows only for work that can be traced to a model.
 
