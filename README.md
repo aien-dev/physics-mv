@@ -2,7 +2,7 @@
 
 Two things live here: the **FORGE** machine realization layer (C), and the historical **Atlas / PHYSICS boot artifacts** (AArch64 assembly) with their evidence. FORGE turns a verified Omega meaning into a concrete realization on the machine at hand (today the CPU and the NVIDIA GB10 GPU; a simulated analog provider exists for testing). It is realization and lowering, not a security gatekeeper: AEGIS verifies, and AIENOS owns the trusted substrate. This repository also holds `nvrm/`, the small C client that drives the GB10 directly through the open NVIDIA kernel interface (no CUDA).
 
-Part of [Sovereign Intelligence (SI)](https://github.com/aien-dev/sovereign-intelligence). The Every repository index lists this repository under CUDA++ runtime ([ADR 0045](https://github.com/aien-dev/aien-architecture-mv/blob/f13c6238e585b284a87e7f5b227f7f8a1bc6bef7/docs/adr/0045-aienix-retired-sovereign-intelligence-center.md)).
+Part of [Sovereign Intelligence (SI)](https://github.com/aien-dev/sovereign-intelligence). SI's repository index lists it under "CUDA++ runtime" ([ADR 0045](https://github.com/aien-dev/aien-architecture-mv/blob/f13c6238e585b284a87e7f5b227f7f8a1bc6bef7/docs/adr/0045-aienix-retired-sovereign-intelligence-center.md)).
 
 **Status 2026-10-19: research-grade, pre-alpha.** FORGE's realize-and-verify seam and its descriptor contract pass their gates. The boot artifacts are qualified in an emulator (QEMU) only and have not booted natively on the DGX Spark. The native memory design for the Spark is a design document, not code.
 
