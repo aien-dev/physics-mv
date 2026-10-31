@@ -1,5 +1,5 @@
 
-/home/drakestapleton/workspace/physics-m2/build/canonical/physics.elf:     file format elf64-littleaarch64
+build/canonical/physics.elf:     file format elf64-littleaarch64
 
 
 Disassembly of section .text:

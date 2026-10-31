@@ -2,7 +2,7 @@
 
 Two things live here: the **FORGE** machine realization layer (C), and the historical **Atlas / PHYSICS boot artifacts** (AArch64 assembly) with their evidence. FORGE turns a verified Omega meaning into a concrete realization on the machine at hand (today the CPU and the NVIDIA GB10 GPU; a simulated analog provider exists for testing). It is realization and lowering, not a security gatekeeper: AEGIS verifies, and AIENOS owns the trusted substrate. This repository also holds `nvrm/`, the small C client that drives the GB10 directly through the open NVIDIA kernel interface (no CUDA).
 
-Part of [Aienix](https://github.com/aien-dev/aienix), the core tree of AIEN. Start there for how the pieces fit together.
+Part of [Sovereign Intelligence (SI)](https://github.com/aien-dev/sovereign-intelligence). SI's repository index lists it under "CUDA++ runtime" ([ADR 0045](https://github.com/aien-dev/aien-architecture-mv/blob/f13c6238e585b284a87e7f5b227f7f8a1bc6bef7/docs/adr/0045-aienix-retired-sovereign-intelligence-center.md)).
 
 **Status 2026-10-19: research-grade, pre-alpha.** FORGE's realize-and-verify seam and its descriptor contract pass their gates. The boot artifacts are qualified in an emulator (QEMU) only and have not booted natively on the DGX Spark. The native memory design for the Spark is a design document, not code.
 
@@ -104,3 +104,15 @@ Backfilled history (marked as such, not live whispers) is in [docs/crumbs/BACKFI
 ## License
 
 Apache License 2.0 with LLVM Exceptions, see [LICENSE](LICENSE). The NVIDIA headers in `third_party/nvidia-open-580.173.02/` keep NVIDIA's own license terms (MIT except where that file notes otherwise), see [COPYING](third_party/nvidia-open-580.173.02/COPYING).
+
+## Human-Directed Agentic Engineering
+
+Development follows Human-Directed Agentic Engineering (HDAE): humans define goals,
+architecture, constraints, acceptance criteria, and stopping points; agents implement,
+execute checks, diagnose failures, and revise within those boundaries. Human review
+retains responsibility for claims, acceptance, and release decisions. This describes
+current development, not a retrospective claim about historical experiments or receipts.
+
+For the documented method and a systems-software case study, see Gregory M. Kurtzer,
+*Ginux: Building an Independent Kernel That Runs Linux Userspace through Human-Directed
+Agentic Engineering* (2026), https://doi.org/10.5281/zenodo.23682548.

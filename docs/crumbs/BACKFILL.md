@@ -7,7 +7,7 @@ History that crumbs would have recorded, reconstructed from git first-parent his
 27 commit(s) touched this tree
 
 - 2026-10-01 62bd2c5 #24 aien-dev: docs: rewrite README to match current status and standing rules (#24) [backfill-git]
-  - lane40 (2026-10-01-push-lane40-report.md): | physics | PHYSICS as "trusted machine authority" (now FORGE realization), dead file:///home/drakestapleton links, hardware-qualification ambiguity, no FORGE/P [backfill-lane-report]
+  - lane40 (2026-10-01-push-lane40-report.md): | physics | PHYSICS as "trusted machine authority" (now FORGE realization), dead file:///home/<user> links, hardware-qualification ambiguity, no FORGE/P [backfill-lane-report]
   - lane40 (2026-10-01-next-major-push-orchestrator.md): 13:48Z Lane 40 DONE (verified all 7 merged): .github#5 c6ee555, arch#87 24f04f6, aienos#207 84e2962, physics#24 62bd2c5, protocols#8 4b97ea6, omega#162 fac1b87, [backfill-lane-report]
 - 2026-10-01 79b30a5 #23 aien-dev: Merge pull request #23 from aien-dev/ci/lane34-physics-ci [backfill-git]
   - lane34 (2026-10-01-push-lane34-report.md): PR physics#23 "CI: host gates workflow (first CI for physics)", merge 79b30a593344d50783b463e01ed59fd485043cb7. [backfill-lane-report]
