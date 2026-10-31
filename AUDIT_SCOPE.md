@@ -103,7 +103,10 @@ make host-tests-m16
 - `evidence/m16-blackwell-native-path-receipt.json` is superseded and must not be cited as a
   qualification (AGENTS.md).
 - `aien-verification.yml` sets `REPO_SLUG: aien-dev/physics` while this repository is
-  `aien-dev/physics-mv`; whether GitHub redirects this is unknown from the repository.
+  `aien-dev/physics-mv`. GitHub redirects the old name (HTTP 301 to `aien-dev/physics-mv`,
+  observed 2026-10-31), but the slug is not fetched: it is passed as
+  `aien-test verify-bundle --repo github.com/aien-dev/physics`, so a tagged release verifies only
+  if the Spark judge signs its bundle under that name. Not exercised: no `alpha/*` tag was run.
 - omega pins an older commit of this repository in its `physics.lock` (README).
 
 ## Dependencies and provenance
