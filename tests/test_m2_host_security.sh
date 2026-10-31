@@ -51,13 +51,18 @@ grep -q 'output directory must not be a symlink' "$T/symlink.log"
 
 # The historical checksum file stays immutable; each absolute path resolves
 # against the original source or receipt commit, not today's working tree.
+# a2c0d7f is not on any branch, so a default clone lacks it: fetch it by sha.
+# A pin that still cannot be read fails below as a digest mismatch.
+for pin in a2c0d7fbc03f7ce91fcb6389312a0ee8630322cd b64753d95bacb1114ba48decde48239f0c542e12; do
+  git -C "$ROOT" cat-file -e "$pin^{commit}" 2>/dev/null || git -C "$ROOT" fetch -q origin "$pin" || true
+done
 n=0
 while read -r digest historical; do
   case $historical in
     /home/*/workspace/m17-physics/*)
       relative=${historical#*/workspace/m17-physics/}
       case $relative in
-        evidence/*) pin=b64753d ;;
+        evidence/*) pin=b64753d95bacb1114ba48decde48239f0c542e12 ;;
         *) pin=a2c0d7fbc03f7ce91fcb6389312a0ee8630322cd ;;
       esac
       actual=$(git -C "$ROOT" show "$pin:$relative" | sha256sum)

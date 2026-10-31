@@ -20,7 +20,8 @@ retained receipt bytes for the eighth. No original checkout is required.
 | `tests/run_m16_requalification.sh` | `tests/run_m16_requalification.sh` | `a2c0d7f` | `4684d4886f398f6f05f93eeb206b521d27f2fcecf44ee234c778c7fd760a0a16` |
 | `evidence/m16-blackwell-native-path-requalification-receipt.json` | same relative path | `b64753d` | `1a32cc2e04793d9fa86849bb93a51145f5b62fea4a8d70484c6a3fccdcbc3b56` |
 
-To check one source row, from any clone of this repository:
+To check one source row, from any clone of this repository (`a2c0d7f` is on no
+branch, so first `git fetch origin a2c0d7fbc03f7ce91fcb6389312a0ee8630322cd`):
 
 ```sh
 git show a2c0d7fbc03f7ce91fcb6389312a0ee8630322cd:m16/m16_native.h | sha256sum
