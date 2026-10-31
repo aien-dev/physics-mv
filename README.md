@@ -89,6 +89,7 @@ Since 2026-10-16 the DGX Spark is the only test judge for pull requests (aien-ar
 
 - `evidence/m16-blackwell-native-path-receipt.json` still says `QUALIFIED / PASS`. It is the original M16 receipt (commit `f72e297`) and it is superseded: it failed an independent runtime audit (it linked `libcuda`, reused stale session state, and cited raw evidence that was never committed). Do not cite it as a qualification. Its own requalification record is `evidence/m16-blackwell-native-path-requalification-receipt.json` with the audit in `evidence/m16-requalification/M16_REQUALIFICATION_AUDIT.md` (implementation `a2c0d7f`). Evidence files are add-only, so the original receipt is left unchanged on purpose.
 - Even the requalification binds the code of its own time. It is historical evidence, not a claim about the current candidate. Source: `reports/L2-EVID.md` of the 2026-10-05 candidate audit (CAND-0 physics pin `6d7cf0d`), as cited in aien-architecture `doctrine/ROADMAP.md`.
+- The original M16 requalification `SHA256SUMS` records eight absolute paths from a historical checkout. The additive [provenance map](evidence/m16-requalification/PROVENANCE-MAP.md) resolves those checksum entries against their historical Git pins. Its empty `build.log` does not record compiler output or prove a fresh build.
 
 ## Contributing
 

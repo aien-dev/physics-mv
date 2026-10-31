@@ -26,6 +26,7 @@
 # Rule adherence (tracking aien-architecture#12, physics#8):
 # Existing qualification_receipt.json is preserved intact unless --write-receipt is passed.
 set -eu
+umask 077
 
 REPO_DIR=$(cd "$(dirname "$0")" && pwd -P)
 cd "$REPO_DIR"
@@ -56,9 +57,10 @@ M2TOOL="$REPO_DIR/tools/m2tool"
 QEMU_INSPECT="$REPO_DIR/tools/qemu_inspect.sh"
 BUILD_DIR="$REPO_DIR/build"
 CANON="$BUILD_DIR/canonical"
-RUN_DIR="/tmp/m2_gate_qualification_$$"
-mkdir -p "$RUN_DIR"
-trap 'rm -rf "$RUN_DIR"' EXIT INT TERM
+RUN_DIR=$(mktemp -d "${TMPDIR:-/tmp}/m2_gate_qualification_XXXXXXXX") || exit 1
+chmod 700 "$RUN_DIR"
+trap 'rm -rf -- "$RUN_DIR"' EXIT
+trap 'exit 1' INT TERM
 
 # 1. Run Seam 1 (Artifact Audit Seam)
 echo ""

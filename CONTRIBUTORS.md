@@ -14,6 +14,7 @@ Every model below did real work. A model is listed only for work it did. The orc
 | Codex | Code review of the Gate 3/4 receipt writer: one finding (binaries were hashed after the GPU lock was released), fixed |
 | Grok | Code review of the Gate 3/4 receipt writer: three findings (empty binary hash on PASS, blobs symlink, existing blob mode), fixed |
 | Gemini | Code review of the Gate 3/4 receipt writer (no findings) |
+| OpenAI Codex GPT-6 Sol | M2 host verifier literal bounds and argv execution, private qualification output, and the historical M16 checksum-path provenance mapping |
 | OpenAI GPT-6.1 Sol | Current HDAE development wording and Gregory M. Kurtzer citation in README and contributor guidance (2026-10-28); no implementation or historical receipt changes |
 | Grok 4.7 | README alignment with ADR 0045: this repository is part of Sovereign Intelligence (SI). SI's repository index lists it under "CUDA++ runtime" ([ADR 0045](https://github.com/aien-dev/aien-architecture-mv/blob/f13c6238e585b284a87e7f5b227f7f8a1bc6bef7/docs/adr/0045-aienix-retired-sovereign-intelligence-center.md)) (2026-10-30) |
 
